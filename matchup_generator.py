@@ -9,11 +9,6 @@ def generate_def_score():
         wlist = tdata[val.name]['weaknesses']
         ilist = tdata[val.name]['immunities']
         score = 0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist))
-        #score = total - len(rlist) - len(wlist) - len(ilist)
-        #for i in rlist:
-        #    score += 0.5
-        #for i in wlist:
-        #    score += 2
         print(val.name + " : " + str(total - score))
 
 def generate_off_score():
@@ -24,17 +19,6 @@ def generate_off_score():
         nlist = tdata[val.name]['not']
         dlist = tdata[val.name]['doesnt']
         score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
-        #score = 0
-        #for check in Types:
-        #    if val in tdata[check.name]['resistances']:
-        #        score += 0.5
-        #        total -= 1
-        #    if val in tdata[check.name]['weaknesses']:
-        #        score += 2
-        #        total -= 1
-        #    if val in tdata[check.name]['immunities']:
-        #        total -= 1
-        #score += total
         print(val.name + " : " + str(score - len(Types)))
 
 #Open json file
@@ -62,13 +46,13 @@ for val in Types:
     for r in idata[val.value]['resistances']:
         # If the type is not in there, does it exception?
         tdata[val.name]['resistances'].append(Types[r])
-        tdata[r]['not'].append(Types[val])
+        tdata[r]['not'].append(Types[val.name])
     for w in idata[val.value]['weaknesses']:
         tdata[val.name]['weaknesses'].append(Types[w])
-        tdata[w]['super'].append(Types[val])
+        tdata[w]['super'].append(Types[val.name])
     for i in idata[val.value]['immunities']:
         tdata[val.name]['immunities'].append(Types[i])
-        tdata[i]['doesnt'].append(Types[val])
+        tdata[i]['doesnt'].append(Types[val.name])
 
 #TODO Generate a type chart in ascii
 generate_def_score()
