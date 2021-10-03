@@ -21,6 +21,28 @@ def generate_off_score():
         score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
         print(val.name + " : " + str(score - total))
 
+def generate_matchups():
+    temp_filler = "   "
+    # Print the top of the table.
+    print ("   |", end="")
+    for type in Types:
+        print (type.name[:3], end="|") # Print the first 3 characters of the type
+    print("")
+    # Print the left side of the table.
+    for type in Types:
+        print (type.name[:3], end="|")
+        for opp_type in Types:
+            if opp_type in tdata[type.name]['super']:
+                print(" 2 |", end="")
+            elif opp_type in tdata[type.name]['not']:
+                print("0.5|", end="")
+            elif opp_type in tdata[type.name]['doesnt']:
+                print(" 0 |", end="")
+            else:
+                print(" 1 |", end="")
+                
+        print("")
+
 #TODO Weighted score: Everything over 1 has a higher weight.
 #Open json file
 #TODO Make it so it can open different json files
@@ -51,6 +73,7 @@ Types = enum.Enum('Types', type_list)
 #TODO Validate the format of the json file for the program needs.
 #TODO Add a value in type dictionary for defense and offense score.
 #TODO Add a check to validate that the defense arrays match the offense arrays
+#TODO Add a check to validate that a resistance can't also be a weakness/immunities, etc
 for val in Types:
     try:
         for r in idata[val.value]['resistances']:
@@ -87,8 +110,10 @@ for val in Types:
         print("Missing 'immunities' Entry")
         exit()
 
-#TODO Generate a type chart in ascii
+#TODO for algorithm file, run through a queue of equations to get to the final one.
 generate_def_score()
 generate_off_score()
+
+generate_matchups()
 
 #TODO Create an algorithm file so that people can create and share their own
