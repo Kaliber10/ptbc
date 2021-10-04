@@ -1,25 +1,28 @@
 import enum
 import json
+import math
 
 def generate_def_score():
-    print("## Generating Defensive Scores ##")
+    #print("## Generating Defensive Scores ##")
     for val in Types:
         total = len(Types)
         rlist = tdata[val.name]['resistances']
         wlist = tdata[val.name]['weaknesses']
         ilist = tdata[val.name]['immunities']
         score = 0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist))
-        print(val.name + " : " + str(total - score))
+        #print(val.name + " : " + str(total - score))
+        tdata[val.name]['def_score'] = total - score
 
 def generate_off_score():
-    print("## Generating Offensive Scores ##")
+    #print("## Generating Offensive Scores ##")
     for val in Types:
         total = len(Types)
         slist = tdata[val.name]['super']
         nlist = tdata[val.name]['not']
         dlist = tdata[val.name]['doesnt']
         score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
-        print(val.name + " : " + str(score - total))
+        #print(val.name + " : " + str(score - total))
+        tdata[val.name]['off_score'] = score - total
 
 def generate_matchups():
     temp_filler = "   "
@@ -40,8 +43,66 @@ def generate_matchups():
                 print(" 0 |", end="")
             else:
                 print(" 1 |", end="")
-                
+
         print("")
+
+def offensive_weight(val):
+    if val >= 1.0:
+        return 2
+    else:
+        return 1
+
+def defensive_weight(val):
+    if val >= 1.0:
+        return 2
+    else:
+        return 1
+
+def generate_table():
+    generate_def_score()
+    generate_off_score()
+    arr = [[0 for x in range(2)] for y in range(len(Types))]
+    #arr = [[0] * 2] * len(Types) This is wrong, for some reason updating one value updates them all.
+    #print("## Generating Defensive Scores ##")
+    for val in Types:
+        total = len(Types)
+        d_score = 0
+        rlist = tdata[val.name]['resistances']
+        wlist = tdata[val.name]['weaknesses']
+        ilist = tdata[val.name]['immunities']
+        for i in rlist:
+            d_score += 0.5 / offensive_weight(tdata[i.name]['off_score'])
+        for i in wlist:
+            d_score += 2 * offensive_weight(tdata[i.name]['off_score'])
+        d_score += total - len(rlist) - len(wlist) - len(ilist)
+        #print(val.name + " : " + str(total - d_score))
+        arr[val.value][0] = total - d_score
+    #print("## Generating Offensive Scores ##")
+    for val in Types:
+        total = len(Types)
+        o_score = 0
+        slist = tdata[val.name]['super']
+        nlist = tdata[val.name]['not']
+        dlist = tdata[val.name]['doesnt']
+        for i in slist:
+            o_score += 2 * defensive_weight(tdata[i.name]['def_score'])
+        for i in nlist:
+            o_score += 0.5 / defensive_weight(tdata[i.name]['def_score'])
+        o_score += total - len(slist) - len(nlist) - len(dlist)
+        arr[val.value][1] = o_score - total
+    max_len = 0
+    for val in Types:
+        max_len = max(max_len, len(val.name))
+    print(" " * max_len, end="")
+    print("|  DEF |  OFF |")
+    for val in Types:
+        filler = max_len - len(val.name)
+        fill_def = 6 - len(str(arr[val.value][0]))
+        fill_off = 6 - len(str(arr[val.value][1]))
+        print(val.name + " " * filler, end="|")
+        print(" " * math.floor(fill_def/2) + str(arr[val.value][0]) + " " * math.ceil(fill_def/2), end="|")
+        print(" " * math.floor(fill_off/2) + str(arr[val.value][1]) + " " * math.ceil(fill_off/2) + "|")
+        
 
 #TODO Weighted score: Everything over 1 has a higher weight.
 #Open json file
@@ -111,8 +172,8 @@ for val in Types:
         exit()
 
 #TODO for algorithm file, run through a queue of equations to get to the final one.
-generate_def_score()
-generate_off_score()
+#TODO create an algorithm array to store all the scores generated to be used by other algorithms.
+generate_table()
 
 generate_matchups()
 
