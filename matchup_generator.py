@@ -2,28 +2,8 @@ import enum
 import json
 import math
 
-def generate_def_score():
-    #print("## Generating Defensive Scores ##")
-    for val in Types:
-        total = len(Types)
-        rlist = tdata[val.name]['resistances']
-        wlist = tdata[val.name]['weaknesses']
-        ilist = tdata[val.name]['immunities']
-        score = 0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist))
-        #print(val.name + " : " + str(total - score))
-        tdata[val.name]['def_score'] = total - score
-
-def generate_off_score():
-    #print("## Generating Offensive Scores ##")
-    for val in Types:
-        total = len(Types)
-        slist = tdata[val.name]['super']
-        nlist = tdata[val.name]['not']
-        dlist = tdata[val.name]['doesnt']
-        score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
-        #print(val.name + " : " + str(score - total))
-        tdata[val.name]['off_score'] = score - total
-
+# Generate the matchup chart for the types.
+# This is not algorithm dependent.
 def generate_matchups():
     temp_filler = "   "
     # Print the top of the table.
@@ -46,6 +26,26 @@ def generate_matchups():
 
         print("")
 
+def generate_def_score():
+    for val in Types:
+        total = len(Types)
+        rlist = tdata[val.name]['resistances']
+        wlist = tdata[val.name]['weaknesses']
+        ilist = tdata[val.name]['immunities']
+        score = 0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist))
+        #print(val.name + " : " + str(total - score))
+        tdata[val.name]['def_score'] = total - score
+
+def generate_off_score():
+    for val in Types:
+        total = len(Types)
+        slist = tdata[val.name]['super']
+        nlist = tdata[val.name]['not']
+        dlist = tdata[val.name]['doesnt']
+        score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
+        #print(val.name + " : " + str(score - total))
+        tdata[val.name]['off_score'] = score - total
+
 def offensive_weight(val):
     if val >= 1.0:
         return 2
@@ -63,7 +63,6 @@ def generate_table():
     generate_off_score()
     arr = [[0 for x in range(2)] for y in range(len(Types))]
     #arr = [[0] * 2] * len(Types) This is wrong, for some reason updating one value updates them all.
-    #print("## Generating Defensive Scores ##")
     for val in Types:
         total = len(Types)
         d_score = 0
@@ -73,11 +72,9 @@ def generate_table():
         for i in rlist:
             d_score += 0.5 / offensive_weight(tdata[i.name]['off_score'])
         for i in wlist:
-            d_score += 2 * offensive_weight(tdata[i.name]['off_score'])
+            d_score += 2 + offensive_weight(tdata[i.name]['off_score']) - 1
         d_score += total - len(rlist) - len(wlist) - len(ilist)
-        #print(val.name + " : " + str(total - d_score))
         arr[val.value][0] = total - d_score
-    #print("## Generating Offensive Scores ##")
     for val in Types:
         total = len(Types)
         o_score = 0
@@ -85,7 +82,7 @@ def generate_table():
         nlist = tdata[val.name]['not']
         dlist = tdata[val.name]['doesnt']
         for i in slist:
-            o_score += 2 * defensive_weight(tdata[i.name]['def_score'])
+            o_score += 2 + defensive_weight(tdata[i.name]['def_score']) - 1
         for i in nlist:
             o_score += 0.5 / defensive_weight(tdata[i.name]['def_score'])
         o_score += total - len(slist) - len(nlist) - len(dlist)
@@ -108,9 +105,20 @@ def generate_table():
 #Open json file
 #TODO Make it so it can open different json files
 #TODO Have a folder for the json files and algorithms. User can select any file in that folder.
-f = open('Type_Matchup.json')
+try:
+    f = open('Type_Matchup.json')
+except:
+    print("Failed to open file")
+    exit()
 #TODO Add exception handler for json files
-idata = json.load(f)['matchups'] #Initial data from JSON
+try:
+    idata = json.load(f)['matchups'] #Initial data from JSON
+except json.decoder.JSONDecodeError as e:
+    print(e)
+    exit()
+except KeyError as e:
+    print("Missing '" + str(e) + "' value")
+    exit()
 
 #Generate the names of the types for the enum.
 type_list = {}
@@ -130,25 +138,20 @@ Types = enum.Enum('Types', type_list)
 
 #Generate the dictionary with Types enums
 
-#TODO Validate that all types in resistances/weaknesses/immunities are eligible types.
 #TODO Validate the format of the json file for the program needs.
-#TODO Add a value in type dictionary for defense and offense score.
 #TODO Add a check to validate that the defense arrays match the offense arrays
 #TODO Add a check to validate that a resistance can't also be a weakness/immunities, etc
 for val in Types:
     try:
         for r in idata[val.value]['resistances']:
             # If the type is not in there, it will exception on a KeyError
+            # KeyError as e will return the key it is looking for.
             try:
                 tdata[val.name]['resistances'].append(Types[r])
                 tdata[r]['not'].append(Types[val.name])
             except KeyError:
                 print("Type " + r + " does not exist")
                 exit()
-    except KeyError:
-        print("Missing 'resistances' Entry")
-        exit()
-    try:
         for w in idata[val.value]['weaknesses']:
             try:
                 tdata[val.name]['weaknesses'].append(Types[w])
@@ -156,10 +159,6 @@ for val in Types:
             except KeyError:
                 print("Type " + w + " does not exist")
                 exit()
-    except KeyError:
-        print("Missing 'weaknesses' Entry")
-        exit()
-    try:
         for i in idata[val.value]['immunities']:
             try:
                 tdata[val.name]['immunities'].append(Types[i])
@@ -167,8 +166,8 @@ for val in Types:
             except KeyError:
                 print("Type " + i + " does not exist")
                 exit()
-    except KeyError:
-        print("Missing 'immunities' Entry")
+    except KeyError as e:
+        print("Missing '" + str(e) + "' Entry")
         exit()
 
 #TODO for algorithm file, run through a queue of equations to get to the final one.
