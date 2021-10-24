@@ -26,6 +26,37 @@ def generate_matchups():
 
         print("")
 
+# Generate a score.
+# R = Resistances List
+# W = Weaknesses List
+# I = Immunities List
+# S = Super Effective List
+# N = Not Very Effective List
+# D = Doesn't Effect List
+# T = Types List
+# $<X> Means value of <X>
+# %<X> Means length of <X>
+# ^<X>:<R/T> Means result of Algorithm <X>
+# #<X> Means average value of Algorithm <X>
+# Should everything be delimited by spaces?
+# The final value is determined by the final line?
+# Alg 1
+# Return: Array
+# loop T {%T - 0.5 * %R + 2 * %W + (%T - %R - %W - %I)}
+# Equivalent to 0.5 * %R - %W + %I
+# Alg 2
+# Return: Array
+# loop T {(2 * %S + 0.5 * %N + (%T - %S - %N - %D)) - %T}
+# Alg 3
+# Return: Value
+# Variables : {off_list : Array}
+# loop T { off_list.add {^1}}, Average(off_list)
+# Alg 4
+# Return: Value
+# Variables : {def_list : Array}
+# loop T { def_list.add {^2}}, Average (def_list)
+# Alg 5
+# loop T {loop R {0.5 / x}
 def generate_def_score():
     for val in Types:
         total = len(Types)
@@ -33,7 +64,6 @@ def generate_def_score():
         wlist = tdata[val.name]['weaknesses']
         ilist = tdata[val.name]['immunities']
         score = 0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist))
-        #print(val.name + " : " + str(total - score))
         tdata[val.name]['def_score'] = total - score
 
 def generate_off_score():
@@ -43,7 +73,6 @@ def generate_off_score():
         nlist = tdata[val.name]['not']
         dlist = tdata[val.name]['doesnt']
         score = 2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))
-        #print(val.name + " : " + str(score - total))
         tdata[val.name]['off_score'] = score - total
 
 def offensive_weight(val):
@@ -57,10 +86,24 @@ def defensive_weight(val):
         return 2
     else:
         return 1
-
+def weighted_average():
+    outlier = 2
+    off_list = []
+    def_list = []
+    for val in Types:
+        off_list.append(tdata[val.name]['off_score'])
+        def_list.append(tdata[val.name]['def_score'])
+    off_list.sort()
+    def_list.sort()
+    print(sum(off_list))
+    print(sum(def_list))
+    print(sum(off_list[outlier:len(off_list)-outlier])/len(off_list[outlier:len(off_list)-outlier]))
+    print(sum(def_list[outlier:len(def_list)-outlier])/len(def_list[outlier:len(def_list)-outlier]))
+    
 def generate_table():
     generate_def_score()
     generate_off_score()
+    weighted_average()
     arr = [[0 for x in range(2)] for y in range(len(Types))]
     #arr = [[0] * 2] * len(Types) This is wrong, for some reason updating one value updates them all.
     for val in Types:
@@ -73,6 +116,7 @@ def generate_table():
             d_score += 0.5 / offensive_weight(tdata[i.name]['off_score'])
         for i in wlist:
             d_score += 2 + offensive_weight(tdata[i.name]['off_score']) - 1
+        # This algorithm should also compensate for being neutral effective against good types.
         d_score += total - len(rlist) - len(wlist) - len(ilist)
         arr[val.value][0] = total - d_score
     for val in Types:
