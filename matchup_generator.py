@@ -2,6 +2,7 @@ import enum
 import json
 import math
 import algorithms.type_matchup as tm
+from algorithms.raw_calc import Raw_Calc
 
 # Generate the matchup chart for the types.
 # This is not algorithm dependent.
@@ -145,6 +146,20 @@ def generate_table():
         print(" " * math.floor(fill_def/2) + str(arr[val.value][0]) + " " * math.ceil(fill_def/2), end="|")
         print(" " * math.floor(fill_off/2) + str(arr[val.value][1]) + " " * math.ceil(fill_off/2) + "|")
         
+def generate_table2(scores):
+    max_len = 0 
+    for val in tm.Type_Matchup.Types:
+        max_len = max(max_len, len(val))
+    print(" " * max_len, end="")
+    print("|  DEF |  OFF |")
+    for val in tm.Type_Matchup.Types:
+        filler = max_len - len(val)
+        fill_def = 6 - len(str(scores[0][val]))
+        fill_off = 6 - len(str(scores[1][val]))
+        print(val + " " * filler, end="|")
+        print(" " * math.floor(fill_def/2) + str(scores[0][val]) + " " * math.ceil(fill_def/2), end="|")
+        print(" " * math.floor(fill_off/2) + str(scores[1][val]) + " " * math.ceil(fill_off/2) + "|")
+        
 #TODO Weighted score: Everything over 1 has a higher weight.
 #Open json file
 #TODO Make it so it can open different json files
@@ -221,5 +236,7 @@ for val in Types:
 #generate_matchups()
 type_data = tm.Type_Matchup ()
 type_data.generate_data (idata)
+rc = Raw_Calc()
+generate_table2(rc.generate_scores())
 
 #TODO Create an algorithm file so that people can create and share their own
