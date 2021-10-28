@@ -159,8 +159,7 @@ def generate_table2(scores):
         print(val + " " * filler, end="|")
         print(" " * math.floor(fill_def/2) + str(scores[0][val]) + " " * math.ceil(fill_def/2), end="|")
         print(" " * math.floor(fill_off/2) + str(scores[1][val]) + " " * math.ceil(fill_off/2) + "|")
-        
-#TODO Weighted score: Everything over 1 has a higher weight.
+
 #Open json file
 #TODO Make it so it can open different json files
 #TODO Have a folder for the json files and algorithms. User can select any file in that folder.
@@ -179,63 +178,12 @@ except KeyError as e:
     print("Missing '" + str(e) + "' value")
     exit()
 
-#Generate the names of the types for the enum.
-type_list = {}
-tdata = {} # Collected data populated with Types values
-for index, value in enumerate(idata):
-    type_list[value['name']] = index
-    tdata[value['name']] = {'resistances' : [],
-                            'weaknesses' : [],
-                            'immunities' : [],
-                            'def_score'  : 0,
-                            'super' : [],
-                            'not' : [],
-                            'doesnt' : [],
-                            'off_score' : 0}
-
-Types = enum.Enum('Types', type_list)
-
-#Generate the dictionary with Types enums
-
-#TODO Validate the format of the json file for the program needs.
-#TODO Add a check to validate that the defense arrays match the offense arrays
-#TODO Add a check to validate that a resistance can't also be a weakness/immunities, etc
-for val in Types:
-    try:
-        for r in idata[val.value]['resistances']:
-            # If the type is not in there, it will exception on a KeyError
-            # KeyError as e will return the key it is looking for.
-            try:
-                tdata[val.name]['resistances'].append(Types[r])
-                tdata[r]['not'].append(Types[val.name])
-            except KeyError:
-                print("Type " + r + " does not exist")
-                exit()
-        for w in idata[val.value]['weaknesses']:
-            try:
-                tdata[val.name]['weaknesses'].append(Types[w])
-                tdata[w]['super'].append(Types[val.name])
-            except KeyError:
-                print("Type " + w + " does not exist")
-                exit()
-        for i in idata[val.value]['immunities']:
-            try:
-                tdata[val.name]['immunities'].append(Types[i])
-                tdata[i]['doesnt'].append(Types[val.name])
-            except KeyError:
-                print("Type " + i + " does not exist")
-                exit()
-    except KeyError as e:
-        print("Missing '" + str(e) + "' Entry")
-        exit()
-
-#TODO for algorithm file, run through a queue of equations to get to the final one.
 #TODO create an algorithm array to store all the scores generated to be used by other algorithms.
 #generate_table()
 
 #generate_matchups()
-type_data = tm.Type_Matchup ()
-type_data.generate_data (idata)
+
+tm.Type_Matchup.generate_data (idata)
 rc = Raw_Calc()
 generate_table2(rc.generate_scores())
 
