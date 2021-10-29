@@ -1,4 +1,6 @@
-{"matchups" : [
+{
+	"name" : "Gen 6+ (Current Gen)",
+	"matchups" : [
 {
 	"name" : "Bug",
 	"resistances" : ["Fighting","Ground","Grass"],

@@ -1,0 +1,94 @@
+{
+	"name" : "Gen 1",
+	"matchups" : [
+{
+	"name" : "Bug",
+	"resistances" : ["Fighting","Ground","Grass"],
+	"weaknesses"  : ["Flying","Rock","Fire","Poison"],
+	"immunities"  : []
+},
+{
+	"name" : "Dragon",
+	"resistances" : ["Fire", "Water", "Electric", "Grass"],
+	"weaknesses"  : ["Ice","Dragon"],
+	"immunities"  : []
+},
+{
+	"name" : "Electric",
+	"resistances" : ["Flying",,"Electric"],
+	"weaknesses"  : ["Ground"],
+	"immunities"  : []
+},
+{
+	"name" : "Fighting",
+	"resistances" : ["Rock","Bug"],
+	"weaknesses"  : ["Flying","Psychic"],
+	"immunities"  : []
+},
+{
+	"name" : "Fire",
+	"resistances" : ["Bug","Fire","Grass"],
+	"weaknesses"  : ["Ground","Rock","Water"],
+	"immunities"  : []
+},
+{
+	"name" : "Flying",
+	"resistances" : ["Fighting","Bug","Grass"],
+	"weaknesses"  : ["Rock","Electric","Ice"],
+	"immunities"  : ["Ground"]
+},
+{
+	"name" : "Ghost",
+	"resistances" : ["Poison","Bug"],
+	"weaknesses"  : ["Ghost"],
+	"immunities"  : ["Normal","Fighting"]
+},
+{
+	"name" : "Grass",
+	"resistances" : ["Ground","Water","Grass","Electric"],
+	"weaknesses"  : ["Flying","Poison","Bug","Fire","Ice"],
+	"immunities"  : []
+},
+{
+	"name" : "Ground",
+	"resistances" : ["Poison","Rock"],
+	"weaknesses"  : ["Water","Grass","Ice"],
+	"immunities"  : ["Electric"]
+},
+{
+	"name" : "Ice",
+	"resistances" : ["Ice"],
+	"weaknesses"  : ["Fighting","Rock","Fire"],
+	"immunities"  : []
+},
+{
+	"name" : "Normal",
+	"resistances" : [],
+	"weaknesses"  : ["Fighting"],
+	"immunities"  : ["Ghost"]
+},
+{
+	"name" : "Poison",
+	"resistances" : ["Fighting","Poison","Grass"],
+	"weaknesses"  : ["Ground","Psychic","Bug"],
+	"immunities"  : []
+},
+{
+	"name" : "Psychic",
+	"resistances" : ["Fighting","Psychic"],
+	"weaknesses"  : ["Bug"],
+	"immunities"  : ["Ghost"]
+},
+{
+	"name" : "Rock",
+	"resistances" : ["Normal","Flying","Poison","Fire"],
+	"weaknesses"  : ["Fighting","Ground","Water","Grass"],
+	"immunities"  : []
+},
+{
+	"name" : "Water",
+	"resistances" : ["Fire","Water","Ice"],
+	"weaknesses"  : ["Grass","Electric"],
+	"immunities"  : []
+}
+]}
