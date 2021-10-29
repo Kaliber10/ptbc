@@ -5,6 +5,14 @@ class Type_Matchup ():
 
     Types = [] # Types Names
     Type_Data = {} # Collected data populated with Types values
+    Max_Char_Length = 0
+    
+    @staticmethod
+    def _max_length():
+        max_len = 0
+        for t in Type_Matchup.Types:
+            max_len = max(max_len, len(t))
+        return max_len
 
     @staticmethod
     def generate_data (input):
@@ -48,3 +56,4 @@ class Type_Matchup ():
             except KeyError as e:
                 print("Missing '" + str(e) + "' Entry")
                 sys.exit()
+        Type_Matchup._max_length()
