@@ -12,7 +12,7 @@ class Type_Matchup ():
         max_len = 0
         for t in Type_Matchup.Types:
             max_len = max(max_len, len(t))
-        return max_len
+        Type_Matchup.Max_Char_Length = max_len
 
     @staticmethod
     def generate_data (input):

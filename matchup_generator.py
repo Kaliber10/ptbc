@@ -2,9 +2,36 @@ import enum
 import json
 import math
 import sys
+
+import importlib
+import pkgutil
+
+import algorithms
+
 from algorithms.type_matchup import Type_Matchup
-from algorithms.raw_calc import Raw_Calc
-from algorithms.weighted_calc import Weighted_Calc
+
+#Plugins
+#from algorithms.raw_calc import Raw_Calc
+#from algorithms.weighted_calc import Weighted_Calc
+
+#def iter_namespace(ns_pkg):
+#    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+    
+#discovered_plugins = {
+#    name : importlib.import_module(name)
+#    for finder, name, ispkg
+#    in iter_namespace(algorithms)
+#}
+#ModuleNotFoundError could appear.
+Raw_Calc = getattr(importlib.import_module('algorithms.raw_calc'), 'Raw_Calc')
+Weighted_Calc = getattr(importlib.import_module('algorithms.weighted_calc'), 'Weighted_Calc')
+Base_Alg = getattr(importlib.import_module('algorithms.algorithm'), 'Algorithm')
+#Check if a class is a subclass.
+print(issubclass(Raw_Calc, Base_Alg))
+#for element in discovered_plugins:
+#    print(element + ":" + str(discovered_plugins[element]))
+
+#print(discovered_plugins)
 
 # Generate the matchup chart for the types.
 # This is not algorithm dependent.
@@ -31,9 +58,7 @@ def generate_matchups():
         print("")
 
 def generate_table(scores):
-    max_len = 0 
-    for val in Type_Matchup.Types:
-        max_len = max(max_len, len(val))
+    max_len = Type_Matchup.Max_Char_Length 
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
     for val in Type_Matchup.Types:
