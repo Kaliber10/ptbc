@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import sys
 
 import importlib
@@ -82,7 +83,7 @@ def generate_table(scores):
 #TODO Make it so it can open different json files
 #TODO Have a folder for the json files and algorithms. User can select any file in that folder.
 try:
-    f = open('Type_Matchup_6-Cur.json')
+    f = open('types/Type_Matchup_6-Cur.json')
 except:
     print("Failed to open file")
     sys.exit(1)
