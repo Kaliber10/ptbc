@@ -1,37 +1,44 @@
-import enum
 import json
 import math
 import sys
 
 import importlib
+import inspect
 import pkgutil
 
 import algorithms
 
 from algorithms.type_matchup import Type_Matchup
+from algorithms.algorithm import Algorithm
 
-#Plugins
-#from algorithms.raw_calc import Raw_Calc
-#from algorithms.weighted_calc import Weighted_Calc
+#1. Find the plugins in the folder
+#2. Import said modules/plugins
+#3. Find the classes of the modules.
+#4. Check that the classes are a subclass of Algorithm, and aren't Algorithm itself.
+#5. Import the class. Try and Exception. If no exception, put it in the valid list.
+def iter_namespace(ns_pkg):
+    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-#def iter_namespace(ns_pkg):
-#    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
-    
-#discovered_plugins = {
-#    name : importlib.import_module(name)
-#    for finder, name, ispkg
-#    in iter_namespace(algorithms)
-#}
+discovered_plugins = {
+    name : importlib.import_module(name)
+    for finder, name, ispkg
+    in iter_namespace(algorithms)
+}
+valid_algs = {}
+for name, module in discovered_plugins.items():
+    #Find the classes of a module.
+    for cls in inspect.getmembers(module, inspect.isclass):
+        # Check if the class is a subclass of the base Algorithm class and make sure it isn't from
+        # importing the Algorithm class.
+        if (issubclass (cls[1], Algorithm)) and not cls[1] == Algorithm:
+            # Get the class from the module, which is an algorithm.
+            try:
+                valid_algs[cls[1].__name__] = getattr(module, cls[1].__name__)
+            except:
+                print("Exception", file=sys.stderr)
+                continue
+
 #ModuleNotFoundError could appear.
-Raw_Calc = getattr(importlib.import_module('algorithms.raw_calc'), 'Raw_Calc')
-Weighted_Calc = getattr(importlib.import_module('algorithms.weighted_calc'), 'Weighted_Calc')
-Base_Alg = getattr(importlib.import_module('algorithms.algorithm'), 'Algorithm')
-#Check if a class is a subclass.
-print(issubclass(Raw_Calc, Base_Alg))
-#for element in discovered_plugins:
-#    print(element + ":" + str(discovered_plugins[element]))
-
-#print(discovered_plugins)
 
 # Generate the matchup chart for the types.
 # This is not algorithm dependent.
@@ -57,8 +64,10 @@ def generate_matchups():
 
         print("")
 
+## TODO handle case where None is returned, or there is too many or not enough
+## values.
 def generate_table(scores):
-    max_len = Type_Matchup.Max_Char_Length 
+    max_len = Type_Matchup.Max_Char_Length
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
     for val in Type_Matchup.Types:
@@ -90,9 +99,12 @@ except KeyError as e:
 #TODO create an algorithm array to store all the scores generated to be used by other algorithms.
 Type_Matchup.generate_data (idata)
 generate_matchups()
-rc = Raw_Calc()
-wc = Weighted_Calc()
-generate_table(rc.generate_scores())
-generate_table(wc.generate_scores())
-
-#TODO Create an algorithm file so that people can create and share their own
+for name, cls in valid_algs.items():
+    print (name)
+    alg = cls()
+    try:
+        result = alg.generate_scores()
+        generate_table(alg.generate_scores())
+    except:
+        print("Exception")
+        continue
