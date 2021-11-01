@@ -68,6 +68,8 @@ def generate_matchups():
 ## TODO handle case where None is returned, or there is too many or not enough
 ## values.
 def generate_table(scores):
+    if scores == None:
+        return
     max_len = Type_Matchup.Max_Char_Length
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
@@ -79,33 +81,78 @@ def generate_table(scores):
         print(" " * math.floor(fill_def/2) + str(scores[0][val]) + " " * math.ceil(fill_def/2), end="|")
         print(" " * math.floor(fill_off/2) + str(scores[1][val]) + " " * math.ceil(fill_off/2) + "|")
 
-#Open json file
-#TODO Make it so it can open different json files
-#TODO Have a folder for the json files and algorithms. User can select any file in that folder.
-try:
-    f = open('types/Type_Matchup_6-Cur.json')
-except:
-    print("Failed to open file")
-    sys.exit(1)
-#TODO Add exception handler for json files
-try:
-    idata = json.load(f)['matchups'] #Initial data from JSON
-except json.decoder.JSONDecodeError as e:
-    print(e)
-    sys.exit(1)
-except KeyError as e:
-    print("Missing '" + str(e) + "' value")
-    sys.exit(1)
+#Find all json files in types.
+valid_type = []
+with os.scandir('types') as ot:
+    for entry in ot:
+        if entry.name.endswith(".json"):
+            try:
+                file_in = open('types/' + entry.name)
+                #There could be additional entries to the json in the future.
+                data_in = json.load(file_in)['matchups']
+                #Add files to a list. A file from that list can be chose.
+                valid_type.append({"name":entry.name,"matchup":data_in})
+            except FileNotFoundError as e:
+                print(e, file=sys.stderr)
+                continue
+            except json.decoder.JSONDecodeError as e:
+                #There were errors in the json file itself.
+                print("Error Found in " + entry.name + ":\n" + str(e) + "\nIgnoring...", file=sys.stderr)
+                continue
+            except KeyError as e:
+                #The setup for the json file was not compatible.
+                print("Missing '" + str(e) + "' Value.", file=stderr)
+            except BaseException as e:
+                #Unknown Error found.
+                print(e)
+                print("Some Error Found", file=sys.stderr)
+                continue
 
-#TODO create an algorithm array to store all the scores generated to be used by other algorithms.
+for index, item in enumerate(valid_type):
+    print (str(index) + ": " + str(item['name']))
+
+print("Enter a number to select a matchup\nType 'exit' to quit.")
+user = 0
+while True:
+    try:
+        user = input('--> ')
+        if user.lower() == 'exit':
+            sys.exit(0)
+        user = int(user)
+        if user > len(valid_type) - 1 or user < 0:
+            print("Enter a valid value")
+        else:
+            break
+    except ValueError:
+        print(str(user) +" is not a number!", file=sys.stderr)
+    
+idata = valid_type[user]['matchup']
+alg_list = list(valid_algs)
+for index, name in enumerate(alg_list):
+    print(str(index) + ": " + str(name))
+    
+print("Enter a number to select an algorithm\nType 'exit' to quit.")
+user = 0
+while True:
+    try:
+        user = input('--> ')
+        if user.lower() == 'exit':
+            sys.exit(0)
+        user = int(user)
+        if user > len(valid_type) - 1 or user < 0:
+            print("Enter a valid value")
+        else:
+            user = alg_list[user]
+            break
+    except ValueError:
+        print(str(user) +" is not a number!", file=sys.stderr)
+
 Type_Matchup.generate_data (idata)
 generate_matchups()
-for name, cls in valid_algs.items():
-    print (name)
-    alg = cls()
-    try:
-        result = alg.generate_scores()
-        generate_table(alg.generate_scores())
-    except:
-        print("Exception")
-        continue
+print(user)
+alg = valid_algs[user]()
+try:
+    result = alg.generate_scores()
+    generate_table(alg.generate_scores())
+except:
+    print("Exception")
