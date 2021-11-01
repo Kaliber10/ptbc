@@ -15,7 +15,7 @@
 },
 {
 	"name" : "Electric",
-	"resistances" : ["Flying",,"Electric"],
+	"resistances" : ["Flying","Electric"],
 	"weaknesses"  : ["Ground"],
 	"immunities"  : []
 },
