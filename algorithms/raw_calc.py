@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 if __name__ == '__main__':
-   from algorithm import Algorithm
    from type_matchup import Type_Matchup
 else:
-   from algorithms.algorithm import Algorithm
    from algorithms.type_matchup import Type_Matchup
 #from algorithm import Algorithm
 #from type_matchup import Type_Matchup
 
-class Raw_Calc(Algorithm):
+class Raw_Calc():
 
     def generate_def_score(self):
         score = {}

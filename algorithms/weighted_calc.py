@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 if __name__ == '__main__':
-   from algorithm import Algorithm
    from type_matchup import Type_Matchup
 else:
-   from algorithms.algorithm import Algorithm
    from algorithms.type_matchup import Type_Matchup
 #from algorithm import Algorithm
 #from type_matchup import Type_Matchup
 
-class Weighted_Calc(Algorithm):
+class Weighted_Calc():
 
     _off_weight = 0.0
     _def_weight = 0.0
