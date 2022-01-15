@@ -14,16 +14,19 @@ from algorithms.type_matchup import Type_Matchup
 #1. Find the plugins in the folder
 #2. Import said modules/plugins
 #3. Find the classes of the modules.
-#4. Check that the classes are a subclass of Algorithm, and aren't Algorithm itself.
-#5. Import the class. Try and Exception. If no exception, put it in the valid list.
+#4. Import the class. Try and Exception. If no exception, put it in the valid list.
 def iter_namespace(ns_pkg):
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-discovered_plugins = {
-    name : importlib.import_module(name)
-    for finder, name, ispkg
-    in iter_namespace(algorithms)
-}
+discovered_plugins = {}
+for finder, name, ispkg in iter_namespace(algorithms):
+    try:
+        discovered_plugins[name] = importlib.import_module(name)
+    except Exception as e:
+        print ("The plugin " + name + " had an exception when importing", file=sys.stderr)
+        print ("  " + str(e), file=sys.stderr)
+    except:
+        print("The plugin " + name + " had an exception when importing", file=sys.stderr)
 valid_algs = {}
 for name, module in discovered_plugins.items():
     #Find the classes of a module.
@@ -47,11 +50,11 @@ def generate_matchups():
     # Print the top of the table.
     print ("   |", end="")
     for type in Type_Matchup.Types:
-        print (type[:3], end="|") # Print the first 3 characters of the type
+        print (type[:3].capitalize(), end="|") # Print the first 3 characters of the type
     print("")
     # Print the left side of the table.
     for type in Type_Matchup.Types:
-        print (type[:3], end="|")
+        print (type[:3].capitalize(), end="|")
         for opp_type in Type_Matchup.Types:
             if opp_type in Type_Matchup.Type_Data[type]['super']:
                 print(" 2 |", end="")
@@ -70,15 +73,37 @@ def generate_table(scores):
     # entry for offense scores.
     if type(scores) == list:
         if len(scores) != 2:
+            print ("The algorithm return is not valid!", file=sys.stderr)
+            print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
             return None
     else:
+        print ("The algorithm return is not valid!", file=sys.stderr)
+        print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
         return None
     # Ensure that the entries are dictionaries with the same length as the number
     # of types.
     if type(scores[0]) == dict or type(scores[1]) == dict:
         if len(scores[0]) != len(Type_Matchup.Types) or len(scores[1]) != len(Type_Matchup.Types):
+            print ("The algorithm return is not valid!", file=sys.stderr)
+            print ("The dictionaries must be the same length as the number of Types in Type_Matchup.", file=sys.stderr)
             return None
+        if sorted(Type_Matchup.Types) != sorted(list(scores[0].keys())) or sorted(Type_Matchup.Types) != sorted(list(scores[1].keys())):
+            print ("The algorithm return is not valid!", file=sys.stderr)
+            print ("The dictionaries keys must be the Types.", file=sys.stderr)
+            return None
+        for val in scores[0].keys():
+            if not isinstance(scores[0][val], (int, float)):
+                print ("The algorithm return is not valid!", file=sys.stderr)
+                print ("Each entry must be a number", file=sys.stderr)
+                return None
+        for val in scores[1].keys():
+            if not isinstance(scores[1][val], (int, float)):
+                print ("The algorithm return is not valid!", file=sys.stderr)
+                print ("Each entry must be a number", file=sys.stderr)
+                return None
     else:
+        print ("The algorithm return is not valid!", file=sys.stderr)
+        print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
         return None
     max_len = Type_Matchup.Max_Char_Length
     print(" " * max_len, end="")
@@ -87,7 +112,7 @@ def generate_table(scores):
         filler = max_len - len(val)
         fill_def = 6 - len(str(scores[0][val]))
         fill_off = 6 - len(str(scores[1][val]))
-        print(val + " " * filler, end="|")
+        print(val.capitalize() + " " * filler, end="|")
         print(" " * math.floor(fill_def/2) + str(scores[0][val]) + " " * math.ceil(fill_def/2), end="|")
         print(" " * math.floor(fill_off/2) + str(scores[1][val]) + " " * math.ceil(fill_off/2) + "|")
 
@@ -107,7 +132,8 @@ with os.scandir('types') as ot:
                     valid_type.append({"name":entry.name,"matchup":data_in})
                 else:
                     print("Errors found in " + entry.name, file=sys.stderr)
-                    print(errs, file=sys.stderr)
+                    print(*errs, sep='\n')
+                    #print(errs, file=sys.stderr)
             except FileNotFoundError as e:
                 print(e, file=sys.stderr)
                 continue
@@ -117,11 +143,14 @@ with os.scandir('types') as ot:
                 continue
             except KeyError as e:
                 #The setup for the json file was not compatible.
-                print("Missing '" + str(e) + "' Value.", file=stderr)
+                print("Error Found in " + entry.name, file=sys.stderr)
+                print("Missing " + str(e) + " Value.", file=sys.stderr)
+                print("Ignoring...", file=sys.stderr)
             except BaseException as e:
                 #Unknown Error found.
+                print("Error Found in " + entry.name, file=sys.stderr)
                 print(e, file=sys.stderr)
-                print("Some Error Found", file=sys.stderr)
+                print("Ignoring...", file=sys.stderr)
                 continue
 
 # If there are no valid type matchups or algorithms, then exit the program
@@ -139,45 +168,50 @@ if to_exit:
     print("Exiting...")
     sys.exit(0)
 
-for index, item in enumerate(valid_type):
-    print (str(index) + ": " + str(item['name']))
+if len (valid_type) > 1:
+    for index, item in enumerate(valid_type):
+        print (str(index) + ": " + str(item['name']))
 
-print("Enter a number to select a matchup\nType 'exit' to quit.")
-user = 0
-while True:
-    try:
-        user = input('--> ')
-        if user.lower() == 'exit':
-            sys.exit(0)
-        user = int(user)
-        if user > len(valid_type) - 1 or user < 0:
-            print("Enter a valid value")
-        else:
-            break
-    except ValueError:
-        print(str(user) +" is not a number!", file=sys.stderr)
-    
+    print("Enter a number to select a matchup\nType 'exit' to quit.")
+    user = 0
+    while True:
+        try:
+            user = input('--> ')
+            if user.lower() == 'exit':
+                sys.exit(0)
+            user = int(user)
+            if user > len(valid_type) - 1 or user < 0:
+                print("Enter a valid value")
+            else:
+                break
+        except ValueError:
+            print(str(user) +" is not a number!", file=sys.stderr)
+else:
+    # This seems bad, if the index ever changes, this has to be updated.
+    user = 0
 idata = valid_type[user]['matchup']
 alg_list = list(valid_algs)
-for index, name in enumerate(alg_list):
-    print(str(index) + ": " + str(name))
+if len (alg_list) > 1:
+    for index, name in enumerate(alg_list):
+        print(str(index) + ": " + str(name))
 
-print("Enter a number to select an algorithm\nType 'exit' to quit.")
-user = 0
-while True:
-    try:
-        user = input('--> ')
-        if user.lower() == 'exit':
-            sys.exit(0)
-        user = int(user)
-        if user > len(alg_list) - 1 or user < 0:
-            print("Enter a valid value")
-        else:
-            user = alg_list[user]
-            break
-    except ValueError:
-        print(str(user) +" is not a number!", file=sys.stderr)
-
+    print("Enter a number to select an algorithm\nType 'exit' to quit.")
+    user = 0
+    while True:
+        try:
+            user = input('--> ')
+            if user.lower() == 'exit':
+                sys.exit(0)
+            user = int(user)
+            if user > len(alg_list) - 1 or user < 0:
+                print("Enter a valid value")
+            else:
+                user = alg_list[user]
+                break
+        except ValueError:
+            print(str(user) +" is not a number!", file=sys.stderr)
+else:
+    user = alg_list[0]
 Type_Matchup.generate_data (idata)
 generate_matchups()
 print(user)
@@ -187,7 +221,7 @@ alg = valid_algs[user]()
 try:
     result = alg.generate_scores()
 except:
-    print("Exception")
+    print("There was an Exception in the algorithm.")
     sys.exit(0)
 
 generate_table(result)
