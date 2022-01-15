@@ -17,10 +17,6 @@ class Type_Matchup ():
             max_len = max(max_len, len(t))
         Type_Matchup.Max_Char_Length = max_len
         
-    @staticmethod
-    def _check_for_dups(li):
-        return None
-        
     # Validate the data given. This is called to check if a json file is valid. If not,
     # the file will be removed from the list.
     # Ensure that:
@@ -161,15 +157,26 @@ class Type_Matchup ():
         for index, value in enumerate (Type_Matchup.Types):
             try:
                 for r in input[index]['resistances']:
-                    Type_Matchup.Type_Data[value]['resistances'].append(r)
-                    Type_Matchup.Type_Data[r]['not'].append(value)
+                    try:
+                        Type_Matchup.Type_Data[value]['resistances'].append(r)
+                        Type_Matchup.Type_Data[r]['not'].append(value)
+                    except KeyError:
+                        print("Type " + r + " does not exist", file=sys.stderr)
+                        sys.exit(1)
                 for w in input[index]['weaknesses']:
-                    Type_Matchup.Type_Data[value]['weaknesses'].append(w)
-                    Type_Matchup.Type_Data[w]['super'].append(value)
+                        Type_Matchup.Type_Data[value]['weaknesses'].append(w)
+                        Type_Matchup.Type_Data[w]['super'].append(value)
+                    except KeyError:
+                        print("Type " + w + " does not exist")
+                        sys.exit(1)
                 for i in input[index]['immunities']:
-                    Type_Matchup.Type_Data[value]['immunities'].append(i)
-                    Type_Matchup.Type_Data[i]['doesnt'].append(value)
+                    try:
+                        Type_Matchup.Type_Data[value]['immunities'].append(i)
+                        Type_Matchup.Type_Data[i]['doesnt'].append(value)
+                    except KeyError:
+                        print("Type " + i + " does not exist")
+                        sys.exit(1)
             except KeyError as e:
                 print("Missing '" + str(e) + "' Entry")
-                sys.exit()
+                sys.exit(1)
         Type_Matchup._max_length()

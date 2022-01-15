@@ -3,8 +3,6 @@ if __name__ == '__main__':
    from type_matchup import Type_Matchup
 else:
    from algorithms.type_matchup import Type_Matchup
-#from algorithm import Algorithm
-#from type_matchup import Type_Matchup
 
 class Raw_Calc():
 
