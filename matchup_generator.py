@@ -1,71 +1,93 @@
+#!/usr/bin/env python3
 import json
 import math
 import os
 import sys
-
 import importlib
 import inspect
 import pkgutil
 
 import algorithms
 
-from algorithms.type_matchup import Type_Matchup
+import algorithms.type_matchup as tm
 
-#1. Find the plugins in the folder
-#2. Import said modules/plugins
-#3. Find the classes of the modules.
-#4. Import the class. Try and Exception. If no exception, put it in the valid list.
-def iter_namespace(ns_pkg):
-    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
-
-discovered_plugins = {}
-for finder, name, ispkg in iter_namespace(algorithms):
-    try:
-        discovered_plugins[name] = importlib.import_module(name)
-    except Exception as e:
-        print ("The plugin " + name + " had an exception when importing", file=sys.stderr)
-        print ("  " + str(e), file=sys.stderr)
-    except:
-        print("The plugin " + name + " had an exception when importing", file=sys.stderr)
-valid_algs = {}
-for name, module in discovered_plugins.items():
+def find_valid_plugins(pkg_space):
+    #1. Find the plugins in the folder
+    #2. Import said modules/plugins
+    #3. Find the classes of the modules.
+    #4. Import the class. Try and Exception. If no exception, put it in the valid list.
+    discovered_plugins = {}
+    valid_plg = []
+    for finder, name, ispkg in pkgutil.iter_modules(pkg_space.__path__, pkg_space.__name__ + "."):
+        try:
+            discovered_plugins[name] = importlib.import_module(name)
+        except Exception as e:
+            print ("The plugin " + name + " had an exception when importing", file=sys.stderr)
+            print ("  " + str(e), file=sys.stderr)
+        except:
+            print("The plugin " + name + " had an exception when importing", file=sys.stderr)
     #Find the classes of a module.
-    for cls in inspect.getmembers(module, inspect.isclass):
-        # Check if the algorithm has "generate_scores" method.
-        if hasattr(cls[1], "generate_scores") and inspect.isfunction(cls[1].generate_scores):
-            # Get the class from the module, which is an algorithm.
-            try:
-                valid_algs[cls[1].__name__] = getattr(module, cls[1].__name__)
-                
-            except:
-                print("Exception", file=sys.stderr)
-                continue
+    for name, module in discovered_plugins.items():
+        for cls in inspect.getmembers(module, inspect.isclass):
+            # Check if the algorithm has "generate_scores" method.
+            if hasattr(cls[1], "generate_scores") and inspect.isfunction(cls[1].generate_scores):
+                # Get the class from the module, which is an algorithm.
+                #ModuleNotFoundError could appear.
+                try:
+                    valid_plg.append({"name" : cls[1].__name__, "class" : getattr(module, cls[1].__name__)})
+                    #valid_plg[cls[1].__name__] = getattr(module, cls[1].__name__)
+                except Exception as e:
+                    print("Exception while verifying algorithm.", file=sys.stderr)
+                    print(e, file=sys.stderr)
+                    continue
+    del discovered_plugins
+    return valid_plg
 
-#ModuleNotFoundError could appear.
-
-# Generate the matchup chart for the types.
-# This is not algorithm dependent.
-def generate_matchups():
-    temp_filler = "   "
-    # Print the top of the table.
-    print ("   |", end="")
-    for type in Type_Matchup.Types:
-        print (type[:3].capitalize(), end="|") # Print the first 3 characters of the type
-    print("")
-    # Print the left side of the table.
-    for type in Type_Matchup.Types:
-        print (type[:3].capitalize(), end="|")
-        for opp_type in Type_Matchup.Types:
-            if opp_type in Type_Matchup.Type_Data[type]['super']:
-                print(" 2 |", end="")
-            elif opp_type in Type_Matchup.Type_Data[type]['not']:
-                print("0.5|", end="")
-            elif opp_type in Type_Matchup.Type_Data[type]['doesnt']:
-                print(" 0 |", end="")
-            else:
-                print(" 1 |", end="")
-
-        print("")
+def find_valid_matchups(path):
+    # This will return the list of all valid json files and their data.
+    valid_types = []
+    # Find all json files in /types.
+    with os.scandir(str(path)) as ot:
+        for entry in ot:
+            if entry.name.endswith(".json"):
+                try:
+                    file_in = open(path + '/' + entry.name)
+                    # There could be additional entries to the json in the future.
+                    data_in = json.load(file_in)['matchups']
+                    # Determine if the data is valid.
+                    valid, errs = tm.validate_input(data_in)
+                    # If the json file is not valid for any reason, it will not be added
+                    # to the list.
+                    if valid:
+                        # This will store the file name for reference later as well as the
+                        # data in said file.
+                        valid_types.append({"name":entry.name,"matchup":data_in})
+                    else:
+                        # Print the file that had errors and the files that occurred so
+                        # that they may be fixed.
+                        print("Errors found in " + entry.name, file=sys.stderr)
+                        print(*errs, sep='\n', file=sys.stderr)
+                except FileNotFoundError as e:
+                    # In the case where the file gets deleted while going through
+                    # the list.
+                    print(e, file=sys.stderr)
+                    continue
+                except json.decoder.JSONDecodeError as e:
+                    # There were json syntax errors file which prevent loading.
+                    print("Error Found in " + entry.name + ":\n" + str(e) + "\nIgnoring file...", file=sys.stderr)
+                    continue
+                except KeyError as e:
+                    # There was not 'matchups' entry in the file.
+                    print("Error Found in " + entry.name, file=sys.stderr)
+                    print("Missing " + str(e) + " Value.", file=sys.stderr)
+                    print("Ignoring file...", file=sys.stderr)
+                except Exception as e:
+                    # An unexpected Error was found.
+                    print("Error Found in " + entry.name, file=sys.stderr)
+                    print(e, file=sys.stderr)
+                    print("Ignoring file...", file=sys.stderr)
+                    continue
+    return valid_types
 
 def generate_table(scores):
     # Validate the input. Move to another function?
@@ -83,11 +105,14 @@ def generate_table(scores):
     # Ensure that the entries are dictionaries with the same length as the number
     # of types.
     if type(scores[0]) == dict or type(scores[1]) == dict:
-        if len(scores[0]) != len(Type_Matchup.Types) or len(scores[1]) != len(Type_Matchup.Types):
+        print(str(len(scores[0])) + " " + str(len(scores[1])) + " " + str(len(tm.Types)))
+        print(tm.Types)
+        print(id(tm.Types))
+        if len(scores[0]) != len(tm.Types) or len(scores[1]) != len(tm.Types):
             print ("The algorithm return is not valid!", file=sys.stderr)
-            print ("The dictionaries must be the same length as the number of Types in Type_Matchup.", file=sys.stderr)
+            print ("The dictionaries must be the same length as the number of Types in tm.", file=sys.stderr)
             return None
-        if sorted(Type_Matchup.Types) != sorted(list(scores[0].keys())) or sorted(Type_Matchup.Types) != sorted(list(scores[1].keys())):
+        if sorted(tm.Types) != sorted(list(scores[0].keys())) or sorted(tm.Types) != sorted(list(scores[1].keys())):
             print ("The algorithm return is not valid!", file=sys.stderr)
             print ("The dictionaries keys must be the Types.", file=sys.stderr)
             return None
@@ -105,10 +130,10 @@ def generate_table(scores):
         print ("The algorithm return is not valid!", file=sys.stderr)
         print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
         return None
-    max_len = Type_Matchup.Max_Char_Length
+    max_len = tm.Max_Char_Length
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
-    for val in Type_Matchup.Types:
+    for val in tm.Types:
         filler = max_len - len(val)
         fill_def = 6 - len(str(scores[0][val]))
         fill_off = 6 - len(str(scores[1][val]))
@@ -116,112 +141,64 @@ def generate_table(scores):
         print(" " * math.floor(fill_def/2) + str(scores[0][val]) + " " * math.ceil(fill_def/2), end="|")
         print(" " * math.floor(fill_off/2) + str(scores[1][val]) + " " * math.ceil(fill_off/2) + "|")
 
-#Find all json files in types.
-valid_type = []
-with os.scandir('types') as ot:
-    for entry in ot:
-        if entry.name.endswith(".json"):
-            try:
-                file_in = open('types/' + entry.name)
-                #There could be additional entries to the json in the future.
-                data_in = json.load(file_in)['matchups']
-                #check if the input is valid.
-                valid, errs = Type_Matchup.validate_input(data_in)
-                if valid:
-                    #Add files to a list. A file from that list can be chose.
-                    valid_type.append({"name":entry.name,"matchup":data_in})
+def pick_option (options, desc):
+    # options is a list.
+    selected = 0
+    if len(options) > 1:
+        for index, item in enumerate(options):
+            print (str(index) + ": " + str(item), file=sys.stdout)
+        print("Enter a number to select " + str(desc) + "\nType 'exit' to quit.", file=sys.stdout)
+        while True:
+            selected = input('--> ')
+            if selected.lower() == 'exit':
+                #print("Exiting...", file=sys.stdout)
+                return None
+            # Determine if the entered string is a number.
+            if selected.isdigit():
+                selected = int(selected)
+                if selected > len(options) - 1 or selected < 0:
+                    print (str(selected) + " is not a valid value!", file=sys.stdout)
                 else:
-                    print("Errors found in " + entry.name, file=sys.stderr)
-                    print(*errs, sep='\n')
-                    #print(errs, file=sys.stderr)
-            except FileNotFoundError as e:
-                print(e, file=sys.stderr)
-                continue
-            except json.decoder.JSONDecodeError as e:
-                #There were errors in the json file itself.
-                print("Error Found in " + entry.name + ":\n" + str(e) + "\nIgnoring...", file=sys.stderr)
-                continue
-            except KeyError as e:
-                #The setup for the json file was not compatible.
-                print("Error Found in " + entry.name, file=sys.stderr)
-                print("Missing " + str(e) + " Value.", file=sys.stderr)
-                print("Ignoring...", file=sys.stderr)
-            except BaseException as e:
-                #Unknown Error found.
-                print("Error Found in " + entry.name, file=sys.stderr)
-                print(e, file=sys.stderr)
-                print("Ignoring...", file=sys.stderr)
-                continue
-
-# If there are no valid type matchups or algorithms, then exit the program
-# as it can't run.
-to_exit = False
-if len(valid_type) == 0:
-    print("No Valid Entry Found For Type Matchups!")
-    to_exit = True
-
-if len(valid_algs) == 0:
-    print("No Valid Entry Found For Algorithms!")
-    to_exit = True
-
-if to_exit:
-    print("Exiting...")
-    sys.exit(0)
-
-if len (valid_type) > 1:
-    for index, item in enumerate(valid_type):
-        print (str(index) + ": " + str(item['name']))
-
-    print("Enter a number to select a matchup\nType 'exit' to quit.")
-    user = 0
-    while True:
-        try:
-            user = input('--> ')
-            if user.lower() == 'exit':
-                sys.exit(0)
-            user = int(user)
-            if user > len(valid_type) - 1 or user < 0:
-                print("Enter a valid value")
+                    break
             else:
-                break
-        except ValueError:
-            print(str(user) +" is not a number!", file=sys.stderr)
-else:
-    # This seems bad, if the index ever changes, this has to be updated.
-    user = 0
-idata = valid_type[user]['matchup']
-alg_list = list(valid_algs)
-if len (alg_list) > 1:
-    for index, name in enumerate(alg_list):
-        print(str(index) + ": " + str(name))
+                print(str(selected) + " is not a valid value!", file=sys.stdout)
+    return selected
 
-    print("Enter a number to select an algorithm\nType 'exit' to quit.")
-    user = 0
-    while True:
-        try:
-            user = input('--> ')
-            if user.lower() == 'exit':
-                sys.exit(0)
-            user = int(user)
-            if user > len(alg_list) - 1 or user < 0:
-                print("Enter a valid value")
-            else:
-                user = alg_list[user]
-                break
-        except ValueError:
-            print(str(user) +" is not a number!", file=sys.stderr)
-else:
-    user = alg_list[0]
-Type_Matchup.generate_data (idata)
-generate_matchups()
-print(user)
-alg = valid_algs[user]()
-#TODO Try to handle generate_scores exceptioning as best as possible. Can
-#     test by just raising exceptions in the algorithm file.
-try:
-    result = alg.generate_scores()
-except:
-    print("There was an Exception in the algorithm.")
-    sys.exit(0)
+def main():
+    alg_entries = find_valid_plugins(algorithms)
+    matchup_list = find_valid_matchups('types')
+    # If there are no valid type matchups or algorithms, then exit the program
+    # as it can't run.
+    to_exit = False
+    if len(matchup_list) == 0:
+        print ("No Valid Entry Found For Type Matchups!", file=sys.stdout)
+        to_exit = True
+    if len(alg_entries) == 0:
+        print ("No Valid Entry Found For Algorithms!", file=sys.stdout)
+        to_exit = True
+    if to_exit:
+        print("Exiting...", file=sys.stdout)
+        sys.exit(0)
+    selected_matchup = pick_option([x['name'] for x in matchup_list if x['name']], "a matchup")
+    if selected_matchup == None:
+        print("Exiting...", file=sys.stdout)
+        sys.exit(0)
+    alg = pick_option([x['name'] for x in alg_entries if x['name']], "an algorithm")
+    if alg == None:
+        print("Exiting...", file=sys.stdout)
+        sys.exit(0)
+    idata = matchup_list[selected_matchup]['matchup']
+    tm.generate_data (idata)
+    tm.generate_matchups()
+    print(alg_entries[alg]['name'])
+    alg = alg_entries[alg]['class']()
+    try:
+        result = alg.generate_scores()
+    except Exception as e:
+        print("There was an Exception in the algorithm.")
+        print(e)
+        sys.exit(1)
+    generate_table(result)
 
-generate_table(result)
+if __name__ == "__main__":
+    main()

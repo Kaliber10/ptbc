@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 if __name__ == '__main__':
-   from type_matchup import Type_Matchup
+   import type_matchup
 else:
-   from algorithms.type_matchup import Type_Matchup
-#from algorithm import Algorithm
-#from type_matchup import Type_Matchup
+   import algorithms.type_matchup as type_matchup
 
 class Weighted_Calc():
 
@@ -26,7 +24,7 @@ class Weighted_Calc():
     def _weighted_average(self, o_input, dlist, outlier):
         off_list = []
         def_list = []
-        for val in Type_Matchup.Types:
+        for val in type_matchup.Types:
             off_list.append(o_input[val])
             def_list.append(dlist[val])
         off_list.sort()
@@ -37,21 +35,21 @@ class Weighted_Calc():
 
     def _generate_raw_def(self):
         score = {}
-        total = len(Type_Matchup.Types)
-        for val in Type_Matchup.Types:
-            rlist = Type_Matchup.Type_Data[val]['resistances']
-            wlist = Type_Matchup.Type_Data[val]['weaknesses']
-            ilist = Type_Matchup.Type_Data[val]['immunities']
+        total = len(type_matchup.Types)
+        for val in type_matchup.Types:
+            rlist = type_matchup.Type_Data[val]['resistances']
+            wlist = type_matchup.Type_Data[val]['weaknesses']
+            ilist = type_matchup.Type_Data[val]['immunities']
             score[val] = total - (0.5 * len(rlist) + 2 * len(wlist) + (total - len(rlist) - len(wlist) - len(ilist)))
         return score
 
     def _generate_raw_off(self):
         score = {}
-        total = len(Type_Matchup.Types)
-        for val in Type_Matchup.Types:
-            slist = Type_Matchup.Type_Data[val]['super']
-            nlist = Type_Matchup.Type_Data[val]['not']
-            dlist = Type_Matchup.Type_Data[val]['doesnt']
+        total = len(type_matchup.Types)
+        for val in type_matchup.Types:
+            slist = type_matchup.Type_Data[val]['super']
+            nlist = type_matchup.Type_Data[val]['not']
+            dlist = type_matchup.Type_Data[val]['doesnt']
             score[val] = (2 * len(slist) + 0.5 * len(nlist) + (total - len(slist) - len(nlist) - len(dlist))) - total
         return score
 
@@ -59,12 +57,12 @@ class Weighted_Calc():
         off_list = {}
         def_list = {}
         #arr = [[0 for x in range(2)] for y in range(len(Types))]
-        for val in Type_Matchup.Types:
-            total = len(Type_Matchup.Types)
+        for val in type_matchup.Types:
+            total = len(type_matchup.Types)
             d_score = 0
-            rlist = Type_Matchup.Type_Data[val]['resistances']
-            wlist = Type_Matchup.Type_Data[val]['weaknesses']
-            ilist = Type_Matchup.Type_Data[val]['immunities']
+            rlist = type_matchup.Type_Data[val]['resistances']
+            wlist = type_matchup.Type_Data[val]['weaknesses']
+            ilist = type_matchup.Type_Data[val]['immunities']
             for i in rlist:
                 d_score += 0.5 / self._offensive_weight(o_input[i])
             for i in wlist:
@@ -72,12 +70,12 @@ class Weighted_Calc():
             # This algorithm should also compensate for being neutral effective against good types.
             d_score += total - len(rlist) - len(wlist) - len(ilist)
             def_list[val] = total - d_score
-        for val in Type_Matchup.Types:
-            total = len(Type_Matchup.Types)
+        for val in type_matchup.Types:
+            total = len(type_matchup.Types)
             o_score = 0
-            slist = Type_Matchup.Type_Data[val]['super']
-            nlist = Type_Matchup.Type_Data[val]['not']
-            dlist = Type_Matchup.Type_Data[val]['doesnt']
+            slist = type_matchup.Type_Data[val]['super']
+            nlist = type_matchup.Type_Data[val]['not']
+            dlist = type_matchup.Type_Data[val]['doesnt']
             for i in slist:
                 o_score += 2 + self._defensive_weight(d_input[i]) - 1
             for i in nlist:
