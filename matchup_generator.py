@@ -31,15 +31,17 @@ def find_valid_plugins(pkg_space):
         for cls in inspect.getmembers(module, inspect.isclass):
             # Check if the algorithm has "generate_scores" method.
             if hasattr(cls[1], "generate_scores") and inspect.isfunction(cls[1].generate_scores):
-                # Get the class from the module, which is an algorithm.
-                #ModuleNotFoundError could appear.
-                try:
-                    valid_plg.append({"name" : cls[1].__name__, "class" : getattr(module, cls[1].__name__)})
-                    #valid_plg[cls[1].__name__] = getattr(module, cls[1].__name__)
-                except Exception as e:
-                    print("Exception while verifying algorithm.", file=sys.stderr)
-                    print(e, file=sys.stderr)
-                    continue
+                fun_spec = inspect.getfullargspec(cls[1].generate_scores)
+                if len(fun_spec.args) ==  2:
+                    # Get the class from the module, which is an algorithm.
+                    #ModuleNotFoundError could appear.
+                    try:
+                        valid_plg.append({"name" : cls[1].__name__, "class" : getattr(module, cls[1].__name__)})
+                        #valid_plg[cls[1].__name__] = getattr(module, cls[1].__name__)
+                    except Exception as e:
+                        print("Exception while verifying algorithm.", file=sys.stderr)
+                        print(e, file=sys.stderr)
+                        continue
     del discovered_plugins
     return valid_plg
 
@@ -89,8 +91,8 @@ def find_valid_matchups(path):
                     continue
     return valid_types
 
-def generate_table(scores):
-    # Validate the input. Move to another function?
+def generate_table(types, scores):
+    # Validate the input. Move Validate to another function.
     # Ensure that a list is returned of length 2. One entry for defense scores and one
     # entry for offense scores.
     if type(scores) == list:
@@ -105,14 +107,11 @@ def generate_table(scores):
     # Ensure that the entries are dictionaries with the same length as the number
     # of types.
     if type(scores[0]) == dict or type(scores[1]) == dict:
-        print(str(len(scores[0])) + " " + str(len(scores[1])) + " " + str(len(tm.Types)))
-        print(tm.Types)
-        print(id(tm.Types))
-        if len(scores[0]) != len(tm.Types) or len(scores[1]) != len(tm.Types):
+        if len(scores[0]) != len(types['data'].keys()) or len(scores[1]) != len(types['data'].keys()):
             print ("The algorithm return is not valid!", file=sys.stderr)
             print ("The dictionaries must be the same length as the number of Types in tm.", file=sys.stderr)
             return None
-        if sorted(tm.Types) != sorted(list(scores[0].keys())) or sorted(tm.Types) != sorted(list(scores[1].keys())):
+        if sorted(types['data'].keys()) != sorted(list(scores[0].keys())) or sorted(types['data'].keys()) != sorted(list(scores[1].keys())):
             print ("The algorithm return is not valid!", file=sys.stderr)
             print ("The dictionaries keys must be the Types.", file=sys.stderr)
             return None
@@ -130,10 +129,10 @@ def generate_table(scores):
         print ("The algorithm return is not valid!", file=sys.stderr)
         print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
         return None
-    max_len = tm.Max_Char_Length
+    max_len = types['meta']['max_length']
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
-    for val in tm.Types:
+    for val in types['data'].keys():
         filler = max_len - len(val)
         fill_def = 6 - len(str(scores[0][val]))
         fill_off = 6 - len(str(scores[1][val]))
@@ -188,17 +187,17 @@ def main():
         print("Exiting...", file=sys.stdout)
         sys.exit(0)
     idata = matchup_list[selected_matchup]['matchup']
-    tm.generate_data (idata)
-    tm.generate_matchups()
+    data = tm.generate_data (idata)
+    tm.generate_matchups(data['data'])
     print(alg_entries[alg]['name'])
     alg = alg_entries[alg]['class']()
     try:
-        result = alg.generate_scores()
+        result = alg.generate_scores(data['data'])
     except Exception as e:
         print("There was an Exception in the algorithm.")
         print(e)
         sys.exit(1)
-    generate_table(result)
+    generate_table(data, result)
 
 if __name__ == "__main__":
     main()

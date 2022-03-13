@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-import sys
 
-Types = [] # Types Names
-Type_Data = {} # Collected data populated with Types values
-Max_Char_Length = 0
-
-def _max_length():
+def _max_length(input):
     max_len = 0
-    for t in Types:
+    for t in input:
         max_len = max(max_len, len(t))
-    Max_Char_Length = max_len
+    return max_len
     
 # Validate the data given. This is called to check if a json file is valid. If not,
 # the file will be removed from the list.
@@ -139,65 +134,53 @@ def generate_data (input):
     # Reset the data
     Types = []
     Type_Data = {}
+    Type_Data['data'] = {}
+    Type_Data['meta'] = {}
     for index, value in enumerate (input):
         Types.append(value['name'])
         # Change to Super, Reduced, None
-        Type_Data[value['name']] = {'resistances' : [],
+        Type_Data['data'][value['name']] = {'resistances' : [],
                                     'weaknesses' : [],
                                     'immunities' : [],
                                     'super' : [],
-                                    'not' : [],
-                                    'doesnt' : []}
+                                    'reduced' : [],
+                                    'none' : []}
 
     #Populate the dictionary with Types list and input data.
     for index, value in enumerate (Types):
-        try:
-            for r in input[index]['resistances']:
-                try:
-                    Type_Data[value]['resistances'].append(r)
-                    Type_Data[r]['not'].append(value)
-                except KeyError:
-                    print("Type " + r + " does not exist", file=sys.stderr)
-                    sys.exit(1)
-            for w in input[index]['weaknesses']:
-                try:
-                    Type_Data[value]['weaknesses'].append(w)
-                    Type_Data[w]['super'].append(value)
-                except KeyError:
-                    print("Type " + w + " does not exist")
-                    sys.exit(1)
-            for i in input[index]['immunities']:
-                try:
-                    Type_Data[value]['immunities'].append(i)
-                    Type_Data[i]['doesnt'].append(value)
-                except KeyError:
-                    print("Type " + i + " does not exist")
-                    sys.exit(1)
-        except KeyError as e:
-            print("Missing '" + str(e) + "' Entry")
-            sys.exit(1)
-    _max_length()
-    print(Types)
+        for r in input[index]['resistances']:
+            Type_Data['data'][value]['resistances'].append(r)
+            Type_Data['data'][r]['reduced'].append(value)
+        for w in input[index]['weaknesses']:
+            Type_Data['data'][value]['weaknesses'].append(w)
+            Type_Data['data'][w]['super'].append(value)
+        for i in input[index]['immunities']:
+            Type_Data['data'][value]['immunities'].append(i)
+            Type_Data['data'][i]['none'].append(value)
+    
+    Type_Data['meta']['max_length'] = _max_length(Types)
+    del Types
+    return Type_Data
     
 # Generate the matchup chart for the types.
 # This is not algorithm dependent.
 # This should move to type_matchup.
-def generate_matchups():
+def generate_matchups(Data):
     temp_filler = "   "
     # Print the top of the table.
     print ("   |", end="")
-    for type in Types:
+    for type in Data.keys():
         print (type[:3].capitalize(), end="|") # Print the first 3 characters of the type
     print("")
     # Print the left side of the table.
-    for type in Types:
+    for type in Data.keys():
         print (type[:3].capitalize(), end="|")
-        for opp_type in Types:
-            if opp_type in Type_Data[type]['super']:
+        for opp_type in Data.keys():
+            if opp_type in Data[type]['super']:
                 print(" 2 |", end="")
-            elif opp_type in Type_Data[type]['not']:
+            elif opp_type in Data[type]['reduced']:
                 print("0.5|", end="")
-            elif opp_type in Type_Data[type]['doesnt']:
+            elif opp_type in Data[type]['none']:
                 print(" 0 |", end="")
             else:
                 print(" 1 |", end="")
