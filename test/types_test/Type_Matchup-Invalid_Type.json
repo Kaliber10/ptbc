@@ -1,0 +1,28 @@
+{
+	"name" : "Gen 1",
+	"matchups" : [
+{
+	"name" : "Fire",
+	"resistances" : ["Grass", "Fire"],
+	"weaknesses"  : ["Water"],
+	"immunities"  : []
+},
+{
+	"name" : "Grass",
+	"resistances" : ["Water","Grass"],
+	"weaknesses"  : ["Fire", "Flying"],
+	"immunities"  : []
+},
+{
+	"name" : "Normal",
+	"resistances" : [],
+	"weaknesses"  : [],
+	"immunities"  : ["Ghost"]
+},
+{
+	"name" : "Water",
+	"resistances" : ["Fire","Water", "Ice"],
+	"weaknesses"  : ["Grass"],
+	"immunities"  : []
+}
+]}

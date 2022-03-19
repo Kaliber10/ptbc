@@ -1,0 +1,26 @@
+{
+"matchups" : {
+	"name" : "Fire",
+	"resistances" : ["Grass", "Fire"],
+	"weaknesses"  : ["Water"],
+	"immunities"  : []
+},
+"Type_1" : {
+	"name" : "Grass",
+	"resistances" : ["Water","Grass"],
+	"weaknesses"  : ["Fire"],
+	"immunities"  : []
+},
+"Type_2" : {
+	"name" : "Normal",
+	"resistances" : [],
+	"weaknesses"  : [],
+	"immunities"  : []
+},
+"Type_3" : {
+	"name" : "Water",
+	"resistances" : ["Fire","Water"],
+	"weaknesses"  : ["Grass"],
+	"immunities"  : []
+}
+}
