@@ -10,12 +10,11 @@ Test Plan
 	d. 'resistances', 'weaknesses', 'immunities' entry is missing from a type. (Missing_Entries)
 	e. 'resistances', 'weaknesses', 'immunities' has the wrong case. (Entry_Case)
 	f. 'resistances', 'weaknesses', 'immunities' contains a type that doesn't exist. (Invalid_Type)
-	h. 'resistances', 'weaknesses', 'immunities' has a duplicate type respectively. (Internal_Dup)
+	g. 'resistances', 'weaknesses', 'immunities' has a duplicate type respectively. (Internal_Dup)
 	h. 'resistances', 'weaknesses', 'immunities' has a duplicate type between them. (External_Dup)
-	i. 'resistances', 'weaknesses', 'immunities' entry is missing. (Missing_Cats)
-    j. Duplicate type in 'matchups' entry. (Duplicate_Type)
-	k. Ensure the proper error is displayed.
-	l. Ensure that they aren't listed as valid.	
+	i. Duplicate type in 'matchups' entry. (Duplicate_Type)
+	j. Ensure the proper error is displayed.
+	k. Ensure that they aren't listed as valid.	
 3. Having no algorithm files.
 	a. Have no py files in /algorithms
 	b. Run Code
@@ -23,7 +22,7 @@ Test Plan
 4. Test the possible errors in the alorithms
 	a. Have an algorithm without generate_scores.
 	b. Have an algorithm with a variable generate_scores.
-5. Valid Jsons
+5. Valid Options
 	a. Have a valid json file.
 	b. It will not ask for a type matchup as only one exists.
 	c. Have multiple json files.
@@ -33,20 +32,10 @@ Test Plan
 	g. Ensure those aren't considered valid.
 	h. Enter the edge of the range.
 	i. Ensure those are considered valid.
-6. Valid algorithms
-	a. Have a valid algorithm.
-	b. It will not ask to choose as there is only one.
-	c. Have multiple valid algorithms.
-	d. Choose a non number ("a") when the option presents itself.
-	e. Ensure that it says "a" is not a valid number.
-	f. Enter a number above the range, and a number under the range.
-	g. Ensure those aren't considered valid.
-	h. Enter the edge of the range.
-	i. Ensure those are considered valid.
-7. Exception in algorithm
+6. Exception in algorithm (Tested by Main)
 	a. Create an algorithm to throw an exception. (exception)
 	b. Ensure the program handles it with a message.
-8. Invalid Scores
+7. Invalid Scores
 	a. Have an algorithm return None. (ret_none)
 	b. Have an alorithm return not a list. (ret_none, not_list)
 	c. Ensure the list is of length 2. (Offense and Defense) (single_nest)
@@ -55,5 +44,5 @@ Test Plan
 	f. Ensure that the keys of the dictionaries match the types list. (wrong_key)
 	g. Ensure that the values in the dictionaries are only numbers. (Non_Numbers)
 	h. Ensure nothing else is in the dictionaries. (extra_data)
-9. Error in Imports
+8. Error in Imports
 	a. Have an algorithm that throws an error when trying to import. (import_exception)
