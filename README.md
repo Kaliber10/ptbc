@@ -17,6 +17,9 @@ These reflect the type's defensive and offensive capabilities.
 "super", "reduced", and "none" are the types's offense.
 Each of those values lead to a list of the types that fall into those categories.
 
+The algorithms will in turn return a list of length two. The first element is a dictionary of the defensive scores, that
+is indexed by each type. The second element is a dictionary of the offensive scores, that is indexed by each type.
+
 ### To Implement
 A way to track special attributes of a type. This includes Grass immunity to powder moves, Ghost immunity to Prankster, etc.
 This would most likely be added into the Type JSON, but unsure about how to fully implement it.
