@@ -22,10 +22,10 @@ def find_valid_plugins(pkg_space):
         try:
             discovered_plugins[name] = importlib.import_module(name)
         except Exception as e:
-            print ("The plugin " + name + " had an exception when importing", file=sys.stderr)
+            print ("The plugin " + name + " had an exception when importing.", file=sys.stderr)
             print ("  " + str(e), file=sys.stderr)
         except:
-            print("The plugin " + name + " had an exception when importing", file=sys.stderr)
+            print("The plugin " + name + " had an exception when importing.", file=sys.stderr)
     #Find the classes of a module.
     for name, module in discovered_plugins.items():
         for cls in inspect.getmembers(module, inspect.isclass):
@@ -109,7 +109,7 @@ def generate_table(types, scores):
     if type(scores[0]) == dict or type(scores[1]) == dict:
         if len(scores[0]) != len(types['data'].keys()) or len(scores[1]) != len(types['data'].keys()):
             print ("The algorithm return is not valid!", file=sys.stderr)
-            print ("The dictionaries must be the same length as the number of Types in tm.", file=sys.stderr)
+            print ("The dictionaries must be the same length as the number of Types.", file=sys.stderr)
             return None
         if sorted(types['data'].keys()) != sorted(list(scores[0].keys())) or sorted(types['data'].keys()) != sorted(list(scores[1].keys())):
             print ("The algorithm return is not valid!", file=sys.stderr)
@@ -118,12 +118,12 @@ def generate_table(types, scores):
         for val in scores[0].keys():
             if not isinstance(scores[0][val], (int, float)):
                 print ("The algorithm return is not valid!", file=sys.stderr)
-                print ("Each entry must be a number", file=sys.stderr)
+                print ("Each entry must be a number.", file=sys.stderr)
                 return None
         for val in scores[1].keys():
             if not isinstance(scores[1][val], (int, float)):
                 print ("The algorithm return is not valid!", file=sys.stderr)
-                print ("Each entry must be a number", file=sys.stderr)
+                print ("Each entry must be a number.", file=sys.stderr)
                 return None
     else:
         print ("The algorithm return is not valid!", file=sys.stderr)
