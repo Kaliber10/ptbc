@@ -1,5 +1,8 @@
 # ptbc
 
+### Python Version
+This was written in python 3.8.
+
 ## Types Matchups
 Different Type Matchups are stored as json files in "types/".   
 The default json file is based on the current Pokemon type matchup.
@@ -23,3 +26,5 @@ is indexed by each type. The second element is a dictionary of the offensive sco
 ### To Implement
 A way to track special attributes of a type. This includes Grass immunity to powder moves, Ghost immunity to Prankster, etc.
 This would most likely be added into the Type JSON, but unsure about how to fully implement it.
+
+This would likely include a token system to make it easier to recognize elements for algorithms.
