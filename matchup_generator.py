@@ -91,44 +91,33 @@ def find_valid_matchups(path):
                     continue
     return valid_types
 
-def generate_table(types, scores):
-    # Validate the input. Move Validate to another function.
+def validate_table(types, scores):
+    # Validate the return from the plugin.
     # Ensure that a list is returned of length 2. One entry for defense scores and one
     # entry for offense scores.
     if type(scores) == list:
         if len(scores) != 2:
-            print ("The algorithm return is not valid!", file=sys.stderr)
-            print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
-            return None
+            return False, "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value."
     else:
-        print ("The algorithm return is not valid!", file=sys.stderr)
-        print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
-        return None
+        return False, "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value."
     # Ensure that the entries are dictionaries with the same length as the number
     # of types.
     if type(scores[0]) == dict or type(scores[1]) == dict:
         if len(scores[0]) != len(types['data'].keys()) or len(scores[1]) != len(types['data'].keys()):
-            print ("The algorithm return is not valid!", file=sys.stderr)
-            print ("The dictionaries must be the same length as the number of Types.", file=sys.stderr)
-            return None
+            return False, "The dictionaries must be the same length as the number of Types."
         if sorted(types['data'].keys()) != sorted(list(scores[0].keys())) or sorted(types['data'].keys()) != sorted(list(scores[1].keys())):
-            print ("The algorithm return is not valid!", file=sys.stderr)
-            print ("The dictionaries keys must be the Types.", file=sys.stderr)
-            return None
+            return False, "The dictionaries keys must be the Types."
         for val in scores[0].keys():
             if not isinstance(scores[0][val], (int, float)):
-                print ("The algorithm return is not valid!", file=sys.stderr)
-                print ("Each entry must be a number.", file=sys.stderr)
-                return None
+                return False, "Each entry must be a number."
         for val in scores[1].keys():
             if not isinstance(scores[1][val], (int, float)):
-                print ("The algorithm return is not valid!", file=sys.stderr)
-                print ("Each entry must be a number.", file=sys.stderr)
-                return None
+                return False, "Each entry must be a number."
     else:
-        print ("The algorithm return is not valid!", file=sys.stderr)
-        print ("The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", file=sys.stderr)
-        return None
+        return False, "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value."
+    return True, ""
+
+def generate_table(types, scores):
     max_len = types['meta']['max_length']
     print(" " * max_len, end="")
     print("|  DEF |  OFF |")
@@ -197,7 +186,12 @@ def main():
         print("There was an Exception in the algorithm.")
         print(e)
         sys.exit(1)
-    generate_table(data, result)
+    is_valid, error = validate_table(data, result)
+    if is_valid:
+        generate_table(data, result)
+    else:
+        print("The algorithm return is not valid!", file=sys.stderr)
+        print(error, file=sys.stderr)
 
 if __name__ == "__main__":
     main()

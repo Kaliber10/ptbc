@@ -277,139 +277,69 @@ test_matchup = [
 }
 ]
 type_test = type_matchup.generate_data(test_matchup)
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, None)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
+results, error = matchup_generator.validate_table(type_test, None)
 
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.\n", err_lines[1]
+assert results == False, results
+assert error == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", error
 print("Success")
 
 print("Testing 7b")
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, 12)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, 12)
+assert results == False, results
+assert error == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", error
 print("Success")
 
 print("Testing 7c")
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, [0])
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, [0])
+assert results == False, results
+assert error == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", error
 print("Success")
 
 print("Testing 7d")
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, [[0,1], [9,8]])
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, [[0,1], [9,8]])
+assert results == False, results
+assert error == "The algorithm must return a list of length 2, and each index being a dictionary of each type, and a numeric value.", error
 print("Success")
 
 print("Testing 7e")
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, [{"Grass" : 5, "Water" : -1}, {"Fire": 0, "Normal" : -2}])
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The dictionaries must be the same length as the number of Types.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, [{"Grass" : 5, "Water" : -1}, {"Fire": 0, "Normal" : -2}])
+assert results == False, results
+assert error == "The dictionaries must be the same length as the number of Types.", error
 print("Success")
 
 print("Testing 7f")
 test_data = [{"Grass" : 5, "Water" : -1, "Fire" : 2, "Ghost" : 2}, {"Fire": 0, "Normal" : -2, "Grass" : 2, "Water" : -1}]
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, test_data)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The dictionaries keys must be the Types.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, test_data)
+assert results == False, results
+assert error == "The dictionaries keys must be the Types.", error
 print("Success")
 
 print("Testing 7g")
 test_data = [{"Grass" : "D:-9", "Water" : "D:-4", "Fire" : "D:2", "Normal" : "D:3"}, {"Fire": "O:-4", "Normal" : "O:5", "Grass" : "O:0", "Water" : "O:1"}]
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, test_data)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "Each entry must be a number.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, test_data)
+assert results == False, results
+assert error == "Each entry must be a number.", error
 print("Success")
 
 print("Testing 7g set 2")
 test_data = [{"Grass" : 0, "Water" : 0, "Fire" : 0, "Normal" : 0}, {"Fire": "O:-4", "Normal" : "O:5", "Grass" : "O:0", "Water" : "O:1"}]
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, test_data)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "Each entry must be a number.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, test_data)
+assert results == False, results
+assert error == "Each entry must be a number.", error
 print("Success")
 
 print("Testing 7h")
 test_data = [{"Grass" : 0, "Water" : 0, "Fire" : 0, "Normal" : 0, "hello" : 5}, {"Fire": 0, "Normal" : 0, "Grass" : 0, "Water" : 0, "Hello" : 0}]
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, test_data)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The dictionaries must be the same length as the number of Types.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, test_data)
+assert results == False, results
+assert error == "The dictionaries must be the same length as the number of Types.", error
 print("Success")
 
 print("Testing 7h set 2")
 test_data = [{"Grass" : 0, "Water" : 0, "Fire" : 0, "Normal" : 0}, {"Fire": 0, "Normal" : 0, "Grass" : 0, "Water" : 0, "Hello" : 0}]
-save_err = sys.stderr
-sys.stderr = io.StringIO()
-results = matchup_generator.generate_table(type_test, test_data)
-t7_err = sys.stderr
-sys.stderr = save_err
-t7_err.seek(0)
-err_lines = t7_err.readlines()
-assert results == None, results
-assert err_lines[0] == "The algorithm return is not valid!\n", err_lines[0]
-assert err_lines[1] == "The dictionaries must be the same length as the number of Types.\n", err_lines[1]
+results, error = matchup_generator.validate_table(type_test, test_data)
+assert results == False, results
+assert error == "The dictionaries must be the same length as the number of Types.", error
 print("Success")
 
 print("Testing 8")
@@ -423,4 +353,5 @@ err_lines = t8_err.readlines()
 assert results == [], results
 assert err_lines[0] == "The plugin alg_b.algorithm-import_exception had an exception when importing.\n", err_lines[0]
 assert err_lines[1] == "  An error was made\n", err_lines[1]
+print("Success")
 # Test generate_table. Print needs to go to a file so that it can be verified.
