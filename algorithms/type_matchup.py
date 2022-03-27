@@ -163,26 +163,24 @@ def generate_data (input):
     return Type_Data
     
 # Generate the matchup chart for the types.
-# This is not algorithm dependent.
-# This should move to type_matchup.
-def generate_matchups(Data):
-    temp_filler = "   "
-    # Print the top of the table.
-    print ("   |", end="")
+def generate_matchups(Data : dict):
+    chart = {"header" : [],
+             "matchup" : []}
+    # Probably alphabetize the keys to make it easier
+    # to find duplicates.
     for type in Data.keys():
-        print (type[:3].capitalize(), end="|") # Print the first 3 characters of the type
-    print("")
-    # Print the left side of the table.
-    for type in Data.keys():
-        print (type[:3].capitalize(), end="|")
-        for opp_type in Data.keys():
-            if opp_type in Data[type]['super']:
-                print(" 2 |", end="")
-            elif opp_type in Data[type]['reduced']:
-                print("0.5|", end="")
-            elif opp_type in Data[type]['none']:
-                print(" 0 |", end="")
-            else:
-                print(" 1 |", end="")
-
-        print("")
+        if type[0:3] in chart["header"]:
+            chart["header"].append(type[0:2] + type[4])
+            print("shit")
+        else:
+            chart["header"].append(type[0:3])
+    type_index_map = {type: index for index, type in enumerate(Data.keys())}
+    for index, type in enumerate(Data.keys()):
+        chart['matchup'].append([1 for i in Data.keys()])
+        for j in Data[type]['super']:
+            chart['matchup'][index][type_index_map[j]] = 2
+        for j in Data[type]['reduced']:
+            chart['matchup'][index][type_index_map[j]] = 0.5
+        for j in Data[type]['none']:
+            chart['matchup'][index][type_index_map[j]] = 0
+    return chart
