@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import tkinter as tk
+
+import algorithms
 import algorithms.type_matchup as type_matchup
 import matchup_generator
 
@@ -14,7 +16,14 @@ frm_chart.grid(row=0,column=1)
 frm_controls = tk.Frame(root)
 frm_controls.grid(row=0, column=0)
 
+frm_algs = tk.Frame(root)
+frm_algs.grid(row=1, column=0)
+
+frm_results = tk.Frame(root)
+frm_results.grid(row=1, column=1)
+
 matchup_list = matchup_generator.find_valid_matchups('types')
+alg_list = matchup_generator.find_valid_plugins(algorithms)
 
 def fill_chart(matchup_data : dict):
 	# should I create a system where it doesn't delete everything, instead it will delete everything it doesn't need
@@ -46,14 +55,32 @@ def update_chart():
 	type_data = type_matchup.generate_data(idata)
 	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
+def update_table():
+	alg = alg_list[0]['class']()
+	idata = matchup_list[v.get()]['matchup']
+	type_data = type_matchup.generate_data(idata)
+	result = alg.generate_scores(type_data['data'])
+	max_len = type_data['meta']['max_length']
+	tk.Label(frm_results, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
+	tk.Label(frm_results, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
+	for ind, val in enumerate(type_data['data'].keys()):
+		tk.Label(frm_results, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
+		tk.Label(frm_results, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
+		tk.Label(frm_results, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
+
 lbl_selection = tk.Label(frm_selections, textvariable=v)
 lbl_selection.grid()
 for num, value in enumerate(matchup_list):
     option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, value=num, indicator=0))
     option_list[-1].grid()
+other_list = []
+for num, value in enumerate(alg_list):
+	other_list.append(tk.Checkbutton(frm_algs, text=value['name'], variable=num))
+	other_list[-1].grid()
 update_button = tk.Button(frm_selections, text="Update", command=update_chart)
 update_button.grid()
 quit_button = tk.Button(frm_selections, text='Quit', command=root.quit)
 quit_button.grid()
 update_chart()
+update_table()
 root.mainloop()
