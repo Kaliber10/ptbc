@@ -14,39 +14,9 @@ frm_chart.grid(row=0,column=1)
 frm_controls = tk.Frame(root)
 frm_controls.grid(row=0, column=0)
 
-test_matchup = [
-{
-	"name" : "Fire",
-	"resistances" : ["Grass", "Fire"],
-	"weaknesses"  : ["Water"],
-	"immunities"  : []
-},
-{
-	"name" : "Grass",
-	"resistances" : ["Water","Grass"],
-	"weaknesses"  : ["Fire"],
-	"immunities"  : []
-},
-{
-	"name" : "Normal",
-	"resistances" : [],
-	"weaknesses"  : [],
-	"immunities"  : []
-},
-{
-	"name" : "Water",
-	"resistances" : ["Fire","Water"],
-	"weaknesses"  : ["Grass"],
-	"immunities"  : []
-}
-]
-
 matchup_list = matchup_generator.find_valid_matchups('types')
 
-type_test = type_matchup.generate_data(test_matchup)
-matchup_data = type_matchup.generate_matchups(type_test['data'])
-
-def updateChart(matchup_data : dict):
+def fill_chart(matchup_data : dict):
 	# should I create a system where it doesn't delete everything, instead it will delete everything it doesn't need
 	# and update what's left. If it needs more it adds more.
 	for i in frm_chart.grid_slaves():
@@ -71,20 +41,19 @@ def updateChart(matchup_data : dict):
 
 option_list = []
 v = tk.IntVar(frm_selections, 0)
-def xxx():
+def update_chart():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
-	matchup_data = type_matchup.generate_matchups(type_data['data'])
-	updateChart(matchup_data)
+	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
 lbl_selection = tk.Label(frm_selections, textvariable=v)
 lbl_selection.grid()
 for num, value in enumerate(matchup_list):
     option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, value=num, indicator=0))
     option_list[-1].grid()
-update_button = tk.Button(frm_selections, text="Update", command=xxx)
+update_button = tk.Button(frm_selections, text="Update", command=update_chart)
 update_button.grid()
 quit_button = tk.Button(frm_selections, text='Quit', command=root.quit)
 quit_button.grid()
-xxx()
+update_chart()
 root.mainloop()
