@@ -70,10 +70,11 @@ def update_table():
 	type_data = type_matchup.generate_data(idata)
 	for i in frm_results.grid_slaves():
 		i.grid_forget()
-	for i in range(len(alg_list)):
+	selected_alg = [ind for ind, val in enumerate(other_list) if val[1].get() == 1]
+	for i in range(len(selected_alg)):
 		frame = tk.Frame(frm_results)
 		frame.grid(row=0, column=i)
-		alg = alg_list[i]['class']()
+		alg = alg_list[selected_alg[i]]['class']()
 		result = alg.generate_scores(type_data['data'])
 		create_table(frame, result, type_data['data'].keys(), type_data['meta']['max_length'])
 
@@ -88,8 +89,9 @@ for num, value in enumerate(matchup_list):
     option_list[-1].grid()
 other_list = []
 for num, value in enumerate(alg_list):
-	other_list.append(tk.Checkbutton(frm_algs, text=value['name'], variable=num))
-	other_list[-1].grid()
+	ck_var = tk.IntVar()
+	other_list.append([tk.Checkbutton(frm_algs, text=value['name'], variable=ck_var), ck_var])
+	other_list[-1][0].grid()
 update_button = tk.Button(frm_controls, text="Update", command=update)
 update_button.grid(row=0, column=0)
 quit_button = tk.Button(frm_controls, text='Quit', command=root.quit)
