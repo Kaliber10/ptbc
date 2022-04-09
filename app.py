@@ -7,20 +7,21 @@ import matchup_generator
 
 root = tk.Tk()
 root.title("ptbc")
+
 frm_selections = tk.Frame(root)
-frm_selections.grid(row=0,column=0)
+frm_selections.grid(row=1, column=0)
 
 frm_chart = tk.Frame(root)
-frm_chart.grid(row=0,column=1)
-
-frm_controls = tk.Frame(root)
-frm_controls.grid(row=0, column=0)
+frm_chart.grid(row=1,column=1)
 
 frm_algs = tk.Frame(root)
-frm_algs.grid(row=1, column=0)
+frm_algs.grid(row=2, column=0)
 
-frm_results = tk.Frame(root)
-frm_results.grid(row=1, column=1)
+frm_results = tk.Frame(root, bg="#C70039")
+frm_results.grid(row=2, column=1)
+
+frm_controls = tk.Frame(root)
+frm_controls.grid(row=0, columnspan=2)
 
 matchup_list = matchup_generator.find_valid_matchups('types')
 alg_list = matchup_generator.find_valid_plugins(algorithms)
@@ -56,17 +57,32 @@ def update_chart():
 	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
 def update_table():
+	alg_frame1 = tk.Frame(frm_results)
+	alg_frame1.grid(row=0, column=0)
+	alg_frame2 = tk.Frame(frm_results)
+	alg_frame2.grid(row=0, column=1)
 	alg = alg_list[0]['class']()
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
 	result = alg.generate_scores(type_data['data'])
 	max_len = type_data['meta']['max_length']
-	tk.Label(frm_results, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
-	tk.Label(frm_results, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
+	tk.Label(alg_frame1, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
+	tk.Label(alg_frame1, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
 	for ind, val in enumerate(type_data['data'].keys()):
-		tk.Label(frm_results, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
-		tk.Label(frm_results, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
-		tk.Label(frm_results, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
+		tk.Label(alg_frame1, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
+		tk.Label(alg_frame1, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
+		tk.Label(alg_frame1, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
+	alg = alg_list[1]['class']()
+	idata = matchup_list[v.get()]['matchup']
+	type_data = type_matchup.generate_data(idata)
+	result = alg.generate_scores(type_data['data'])
+	max_len = type_data['meta']['max_length']
+	tk.Label(alg_frame2, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
+	tk.Label(alg_frame2, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
+	for ind, val in enumerate(type_data['data'].keys()):
+		tk.Label(alg_frame2, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
+		tk.Label(alg_frame2, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
+		tk.Label(alg_frame2, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
 
 lbl_selection = tk.Label(frm_selections, textvariable=v)
 lbl_selection.grid()
@@ -77,10 +93,10 @@ other_list = []
 for num, value in enumerate(alg_list):
 	other_list.append(tk.Checkbutton(frm_algs, text=value['name'], variable=num))
 	other_list[-1].grid()
-update_button = tk.Button(frm_selections, text="Update", command=update_chart)
-update_button.grid()
-quit_button = tk.Button(frm_selections, text='Quit', command=root.quit)
-quit_button.grid()
+update_button = tk.Button(frm_controls, text="Update", command=update_chart)
+update_button.grid(row=0, column=0)
+quit_button = tk.Button(frm_controls, text='Quit', command=root.quit)
+quit_button.grid(row=0, column=1)
 update_chart()
 update_table()
 root.mainloop()
