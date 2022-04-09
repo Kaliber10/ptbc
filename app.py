@@ -36,6 +36,7 @@ def fill_chart(matchup_data : dict):
 		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3)
 		e_top.grid (row=0, column=i+1)
 		e_left.grid (row=i+1, column=0)
+	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
 			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3)
@@ -56,33 +57,23 @@ def update_chart():
 	type_data = type_matchup.generate_data(idata)
 	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
+def create_table(frame : tk.Frame, alg : list, keys : list, max_len : int):
+	tk.Label(frame, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
+	tk.Label(frame, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
+	for ind, val in enumerate(keys):
+		tk.Label(frame, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
+		tk.Label(frame, text=str(alg[0][val]), width=6).grid(row=ind+1, column=1)
+		tk.Label(frame, text=str(alg[1][val]), width=6).grid(row=ind+1, column=2)
+
 def update_table():
-	alg_frame1 = tk.Frame(frm_results)
-	alg_frame1.grid(row=0, column=0)
-	alg_frame2 = tk.Frame(frm_results)
-	alg_frame2.grid(row=0, column=1)
-	alg = alg_list[0]['class']()
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
-	result = alg.generate_scores(type_data['data'])
-	max_len = type_data['meta']['max_length']
-	tk.Label(alg_frame1, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
-	tk.Label(alg_frame1, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
-	for ind, val in enumerate(type_data['data'].keys()):
-		tk.Label(alg_frame1, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
-		tk.Label(alg_frame1, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
-		tk.Label(alg_frame1, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
-	alg = alg_list[1]['class']()
-	idata = matchup_list[v.get()]['matchup']
-	type_data = type_matchup.generate_data(idata)
-	result = alg.generate_scores(type_data['data'])
-	max_len = type_data['meta']['max_length']
-	tk.Label(alg_frame2, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
-	tk.Label(alg_frame2, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
-	for ind, val in enumerate(type_data['data'].keys()):
-		tk.Label(alg_frame2, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
-		tk.Label(alg_frame2, text=str(result[0][val]), width=6).grid(row=ind+1, column=1)
-		tk.Label(alg_frame2, text=str(result[1][val]), width=6).grid(row=ind+1, column=2)
+	for i in range(len(alg_list)):
+		frame = tk.Frame(frm_results)
+		frame.grid(row=0, column=i)
+		alg = alg_list[i]['class']()
+		result = alg.generate_scores(type_data['data'])
+		create_table(frame, result, type_data['data'].keys(), type_data['meta']['max_length'])
 
 lbl_selection = tk.Label(frm_selections, textvariable=v)
 lbl_selection.grid()
