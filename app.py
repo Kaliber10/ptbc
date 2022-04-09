@@ -17,7 +17,7 @@ frm_chart.grid(row=1,column=1)
 frm_algs = tk.Frame(root)
 frm_algs.grid(row=2, column=0)
 
-frm_results = tk.Frame(root, bg="#C70039")
+frm_results = tk.Frame(root)
 frm_results.grid(row=2, column=1)
 
 frm_controls = tk.Frame(root)
@@ -68,12 +68,18 @@ def create_table(frame : tk.Frame, alg : list, keys : list, max_len : int):
 def update_table():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
+	for i in frm_results.grid_slaves():
+		i.grid_forget()
 	for i in range(len(alg_list)):
 		frame = tk.Frame(frm_results)
 		frame.grid(row=0, column=i)
 		alg = alg_list[i]['class']()
 		result = alg.generate_scores(type_data['data'])
 		create_table(frame, result, type_data['data'].keys(), type_data['meta']['max_length'])
+
+def update():
+	update_chart()
+	update_table()
 
 lbl_selection = tk.Label(frm_selections, textvariable=v)
 lbl_selection.grid()
@@ -84,7 +90,7 @@ other_list = []
 for num, value in enumerate(alg_list):
 	other_list.append(tk.Checkbutton(frm_algs, text=value['name'], variable=num))
 	other_list[-1].grid()
-update_button = tk.Button(frm_controls, text="Update", command=update_chart)
+update_button = tk.Button(frm_controls, text="Update", command=update)
 update_button.grid(row=0, column=0)
 quit_button = tk.Button(frm_controls, text='Quit', command=root.quit)
 quit_button.grid(row=0, column=1)
