@@ -52,40 +52,48 @@ def fill_chart(matchup_data : dict):
 
 option_list = []
 v = tk.IntVar(frm_selections, 0)
+cur_selection = tk.IntVar(frm_selections, 0)
 def update_chart():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
 	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
-def create_table(frame : tk.Frame, alg : list, keys : list, max_len : int):
-	tk.Label(frame, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=1)
-	tk.Label(frame, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=0, column=2)
+def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
+	tk.Label(frame, text=name).grid(row=0, columnspan=3)
+	tk.Label(frame, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=1, column=1)
+	tk.Label(frame, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=1, column=2)
 	for ind, val in enumerate(keys):
-		tk.Label(frame, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+1, column=0)
-		tk.Label(frame, text=str(alg[0][val]), width=6).grid(row=ind+1, column=1)
-		tk.Label(frame, text=str(alg[1][val]), width=6).grid(row=ind+1, column=2)
+		tk.Label(frame, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+2, column=0)
+		tk.Label(frame, text=str(alg[0][val]), width=6).grid(row=ind+2, column=1)
+		tk.Label(frame, text=str(alg[1][val]), width=6).grid(row=ind+2, column=2)
 
 def update_table():
+	option_list[cur_selection.get()]['state'] = tk.NORMAL
+	option_list[cur_selection.get()]['bg'] = "SystemButtonFace"
+	option_list[cur_selection.get()]['selectcolor'] = "SystemWindow"
+	option_list[v.get()]['state'] = tk.DISABLED
+	option_list[v.get()]['bg'] = "#88FF7E"
+	option_list[v.get()]['selectcolor'] = "#88FF7E"
+	cur_selection.set(v.get())
 	idata = matchup_list[v.get()]['matchup']
 	type_data = type_matchup.generate_data(idata)
 	for i in frm_results.grid_slaves():
 		i.grid_forget()
 	selected_alg = [ind for ind, val in enumerate(other_list) if val[1].get() == 1]
 	for i in range(len(selected_alg)):
-		frame = tk.Frame(frm_results)
+		frame = tk.Frame(frm_results,highlightbackground="black", highlightthickness=2)
 		frame.grid(row=0, column=i)
 		alg = alg_list[selected_alg[i]]['class']()
 		result = alg.generate_scores(type_data['data'])
-		create_table(frame, result, type_data['data'].keys(), type_data['meta']['max_length'])
+		create_table(frame, alg_list[selected_alg[i]]['name'], result, type_data['data'].keys(), type_data['meta']['max_length'])
 
 def update():
 	update_chart()
 	update_table()
 
-lbl_selection = tk.Label(frm_selections, textvariable=v)
-lbl_selection.grid()
+nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
-    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, value=num, indicator=0))
+    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0))
     option_list[-1].grid()
 other_list = []
 for num, value in enumerate(alg_list):
