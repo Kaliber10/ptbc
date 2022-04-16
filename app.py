@@ -37,14 +37,14 @@ def fill_chart(matchup_data : dict):
 	for i in frm_chart.grid_slaves():
 		i.grid_forget()
 	for i in range(len(matchup_data['header'])):
-		e_top = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3)
-		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3)
+		e_top = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
 		e_left.grid (row=i+1, column=0)
 	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
-			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3)
+			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
 			#Can I use highlight instead of relief for the labels?
 			# Add color to the label. If it is 2x, then use green, if it is 0.5x, then use red.
 			# This makes it more clear to the user what the matchup is.
@@ -64,13 +64,13 @@ def update_chart():
 	fill_chart(type_matchup.generate_matchups(type_data['data']))
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
-	tk.Label(frame, text=name).grid(row=0, columnspan=3)
-	tk.Label(frame, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=1, column=1)
-	tk.Label(frame, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6).grid(row=1, column=2)
+	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
+	tk.Label(frame, text="DEF", relief=tk.RAISED, bg="#CACACA", width=6, font=("TkDefaultFont", 12)).grid(row=1, column=1)
+	tk.Label(frame, text="OFF", relief=tk.RAISED, bg="#CACACA", width=6, font=("TkDefaultFont", 12)).grid(row=1, column=2)
 	for ind, val in enumerate(keys):
-		tk.Label(frame, text=str(val), relief=tk.RAISED, width=max_len).grid(row=ind+2, column=0)
-		tk.Label(frame, text=str(alg[0][val]), width=6).grid(row=ind+2, column=1)
-		tk.Label(frame, text=str(alg[1][val]), width=6).grid(row=ind+2, column=2)
+		tk.Label(frame, text=str(val), relief=tk.RAISED, width=max_len, font=("TkDefaultFont", 12)).grid(row=ind+2, column=0)
+		tk.Label(frame, text=str(alg[0][val]), width=6, font=("TkDefaultFont", 12)).grid(row=ind+2, column=1)
+		tk.Label(frame, text=str(alg[1][val]), width=6, font=("TkDefaultFont", 12)).grid(row=ind+2, column=2)
 
 def update_table():
 	option_list[cur_selection.get()]['state'] = tk.NORMAL
@@ -108,12 +108,12 @@ def update():
 
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
-    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0))
+    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, font=("TkDefaultFont", 12)))
     option_list[-1].grid()
 other_list = []
 for num, value in enumerate(alg_list):
 	ck_var = tk.IntVar()
-	other_list.append([tk.Checkbutton(frm_algs, text=value['name'], variable=ck_var), ck_var])
+	other_list.append([tk.Checkbutton(frm_algs, text=value['name'], variable=ck_var, font=("TkDefaultFont", 12)), ck_var])
 	other_list[-1][0].grid()
 update_button = tk.Button(frm_controls, text="Update", command=update)
 update_button.grid(row=0, column=0)
