@@ -23,6 +23,11 @@ frm_results.grid(row=2, column=1)
 frm_controls = tk.Frame(root)
 frm_controls.grid(row=0, columnspan=2)
 
+root.columnconfigure(0, weight=1)
+root.columnconfigure(1, weight=2)
+root.rowconfigure(1, weight=1)
+root.rowconfigure(2, weight=1)
+
 matchup_list = matchup_generator.find_valid_matchups('types')
 alg_list = matchup_generator.find_valid_plugins(algorithms)
 
@@ -87,9 +92,19 @@ def update_table():
 		result = alg.generate_scores(type_data['data'])
 		create_table(frame, alg_list[selected_alg[i]]['name'], result, type_data['data'].keys(), type_data['meta']['max_length'])
 
+def configure_min_size():
+	root.update()
+	fin_width = 0
+	fin_height = 0
+	fin_width = max(frm_selections.winfo_width(), frm_algs.winfo_width()) + max(frm_chart.winfo_width(), frm_results.winfo_width())
+	fin_height = frm_controls.winfo_height() + max(frm_selections.winfo_height(), frm_chart.winfo_height()) + max(frm_algs.winfo_height(), frm_results.winfo_height())
+	root.minsize(width=fin_width, height=fin_height)
+
 def update():
 	update_chart()
 	update_table()
+	configure_min_size()
+
 
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
@@ -104,6 +119,5 @@ update_button = tk.Button(frm_controls, text="Update", command=update)
 update_button.grid(row=0, column=0)
 quit_button = tk.Button(frm_controls, text='Quit', command=root.quit)
 quit_button.grid(row=0, column=1)
-update_chart()
-update_table()
+update()
 root.mainloop()
