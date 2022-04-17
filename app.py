@@ -101,14 +101,19 @@ def configure_min_size():
 	root.minsize(width=fin_width, height=fin_height)
 
 def update():
+	update_button['bg'] = "SystemButtonFace"
 	update_chart()
 	update_table()
 	configure_min_size()
 
+def check_for_update():
+	if v.get() != cur_selection.get():
+		update_button['bg'] = "#FFFD58"
+
 
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
-    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, font=("TkDefaultFont", 12)))
+    option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, command=check_for_update, font=("TkDefaultFont", 12)))
     option_list[-1].grid()
 other_list = []
 for num, value in enumerate(alg_list):
