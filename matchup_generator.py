@@ -24,9 +24,9 @@ def validate_input (input):
     valid = False
     error_list = []
     
-    
     if type(input) == list:
-        # Should the casing requirement be removed, and just be handled. . .?
+        if len(input) > 40:
+            error_list.append("More than 40 types is not allowed.\n")
         # Make this a lower(), so that casing is not important. Adjust the validate.
         l_type_names = [x['name'] for x in input if 'name' in x]
         v_types = [x['name'].lower() for x in input if 'name' in x]
@@ -34,7 +34,7 @@ def validate_input (input):
         # It could be nice enough to find the duplicates for you.
         t_name_set = set(v_types)
         if len(t_name_set) != len(v_types):
-            err_string = "Duplicate Types Given in List\n"
+            err_string = "Duplicate Types Given in List.\n"
             dup_set = set()
             dup_dict = {}
             for index, value in enumerate(v_types):
