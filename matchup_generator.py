@@ -6,6 +6,8 @@ import sys
 import importlib
 import inspect
 import pkgutil
+import threading
+import time
 
 import algorithms
 
@@ -335,6 +337,9 @@ def pick_option (options, desc):
                 print(str(selected) + " is not a valid value!", file=sys.stdout)
     return selected
 
+def thread_caller (input):
+    input['result'] = input['algorithm'](input['data'])
+
 def main():
     alg_entries = find_valid_plugins(algorithms)
     matchup_list = find_valid_matchups('types')
@@ -375,8 +380,20 @@ def main():
         print("")
     print(alg_entries[alg]['name'])
     alg = alg_entries[alg]['class']()
+    pass_info = {"data" : data["data"],
+                 "result" : None,
+                 "algorithm" : alg.generate_scores}
+    x = threading.Thread(target=thread_caller, args=(pass_info,))
+    start_time = time.perf_counter()
     try:
-        result = alg.generate_scores(data['data'])
+        x.start()
+        success = False
+        while True:
+            if x.is_alive() and (time.perf_counter() - start_time >= 60):
+                break
+            elif not x.is_alive():
+                break
+        result = pass_info["result"]
     except Exception as e:
         print("There was an Exception in the algorithm.")
         print(e)
