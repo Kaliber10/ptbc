@@ -6,8 +6,9 @@ import sys
 import importlib
 import inspect
 import pkgutil
-import threading
+import multiprocessing
 import time
+import configparser
 
 import algorithms
 
@@ -338,9 +339,18 @@ def pick_option (options, desc):
     return selected
 
 def thread_caller (input):
-    input['result'] = input['algorithm'](input['data'])
+    # Retrieve the dictionary with the algorithm and the type matchup data
+    # from the queue.
+    pass_val = input.get()
+    # Store the result of the algorithm, and then pass it into the queue
+    # to be received by the main process.
+    output = pass_val['algorithm'](pass_val['data'])
+    input.put(output)
 
 def main():
+    config = configparser.ConfigParser()
+    config.read('.config')
+    timeout = int(config["Algorithms"]["timeout"])
     alg_entries = find_valid_plugins(algorithms)
     matchup_list = find_valid_matchups('types')
     # If there are no valid type matchups or algorithms, then exit the program
@@ -380,20 +390,24 @@ def main():
         print("")
     print(alg_entries[alg]['name'])
     alg = alg_entries[alg]['class']()
-    pass_info = {"data" : data["data"],
-                 "result" : None,
-                 "algorithm" : alg.generate_scores}
-    x = threading.Thread(target=thread_caller, args=(pass_info,))
+    data_queue = multiprocessing.Queue()
+    # Transfer data between the main process and the algorithm process
+    # using a queue.
+    data_queue.put({"data" : data["data"],
+                    "algorithm" : alg.generate_scores})
+    x = multiprocessing.Process(target=thread_caller, args=(data_queue,))
     start_time = time.perf_counter()
     try:
         x.start()
         success = False
         while True:
-            if x.is_alive() and (time.perf_counter() - start_time >= 60):
+            if x.is_alive() and (time.perf_counter() - start_time >= timeout):
+                print("Algorithm time has exceeded timeout of " + str(timeout) + " seconds.")
+                x.terminate()
                 break
             elif not x.is_alive():
                 break
-        result = pass_info["result"]
+        result = data_queue.get()
     except Exception as e:
         print("There was an Exception in the algorithm.")
         print(e)
