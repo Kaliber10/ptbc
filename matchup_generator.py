@@ -406,11 +406,14 @@ def main():
                 x.terminate()
                 break
             elif not x.is_alive():
+                success = True
                 break
         result = data_queue.get()
     except Exception as e:
         print("There was an Exception in the algorithm.")
         print(e)
+        sys.exit(1)
+    if success == False:
         sys.exit(1)
     is_valid, error = validate_table(data, result)
     if is_valid:
