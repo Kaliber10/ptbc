@@ -1,30 +1,57 @@
 #!/usr/bin/env python
 import tkinter as tk
+from tkinter import ttk
 
 import algorithms
 import algorithms.type_matchup as type_matchup
 import matchup_generator
 
 root = tk.Tk()
-root.title("ptbc")
+root.title("ptbc") 
 
 frm_selections = tk.Frame(root)
 frm_selections.grid(row=1, column=0)
 
-frm_chart = tk.Frame(root)
-frm_chart.grid(row=1,column=1)
+f_contain_chart = tk.Frame(root)
+f_contain_chart.grid(row=1,column=1, sticky=tk.NSEW)
+scl_chart_v = ttk.Scrollbar(f_contain_chart, orient=tk.VERTICAL)
+scl_chart_h = ttk.Scrollbar(f_contain_chart, orient=tk.HORIZONTAL)
+can_chart = tk.Canvas(f_contain_chart, highlightthickness=0, yscrollcommand=scl_chart_v.set, xscrollcommand=scl_chart_h.set)
+can_chart.grid(row=0, column=0, sticky=tk.NSEW)
+scl_chart_v['command'] = can_chart.yview
+scl_chart_h['command'] = can_chart.xview
+scl_chart_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_chart_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_chart = tk.Frame(can_chart)
+frm_chart.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_chart.columnconfigure(0, weight=1)
+f_contain_chart.rowconfigure(0, weight=1)
+can_chart.create_window(0, 0, window=frm_chart, anchor=tk.NW)
 
 frm_algs = tk.Frame(root)
 frm_algs.grid(row=2, column=0)
 
-frm_results = tk.Frame(root)
-frm_results.grid(row=2, column=1)
+f_contain_results = tk.Frame(root)
+f_contain_results.grid(row=2, column=1, sticky=tk.NSEW)
+scl_results_v = ttk.Scrollbar(f_contain_results, orient=tk.VERTICAL)
+scl_results_h = ttk.Scrollbar(f_contain_results, orient=tk.HORIZONTAL)
+can_results = tk.Canvas(f_contain_results, highlightthickness=0, yscrollcommand=scl_results_v.set, xscrollcommand=scl_results_h.set)
+can_results.grid(row=0, column=0, sticky=tk.NSEW)
+scl_results_v['command'] = can_results.yview
+scl_results_h['command'] = can_results.xview
+scl_results_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_results_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_results = tk.Frame(can_results)
+frm_results.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_results.columnconfigure(0, weight=1)
+f_contain_results.rowconfigure(0, weight=1)
+can_results.create_window(0,0, window=frm_results, anchor=tk.NW)
 
 frm_controls = tk.Frame(root)
 frm_controls.grid(row=0, columnspan=2)
 
 root.columnconfigure(0, weight=1)
-root.columnconfigure(1, weight=2)
+root.columnconfigure(1, weight=1)
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
@@ -45,7 +72,7 @@ def fill_chart(matchup_data : dict):
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
 			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
-			#Can I use highlight instead of relief for the labels?
+			# TODO Can I use highlight instead of relief for the labels?
 			# Add color to the label. If it is 2x, then use green, if it is 0.5x, then use red.
 			# This makes it more clear to the user what the matchup is.
 			if matchup_data['matchup'][i][j] == 2:
@@ -93,36 +120,66 @@ def update_table():
 		create_table(frame, alg_list[selected_alg[i]]['name'], result, type_data['data'].keys(), type_data['meta']['max_length'])
 
 def configure_min_size():
-	root.update()
-	fin_width = 0
-	fin_height = 0
-	fin_width = max(frm_selections.winfo_width(), frm_algs.winfo_width()) + max(frm_chart.winfo_width(), frm_results.winfo_width())
-	fin_height = frm_controls.winfo_height() + max(frm_selections.winfo_height(), frm_chart.winfo_height()) + max(frm_algs.winfo_height(), frm_results.winfo_height())
+	# A minimum of 400 by 300 pixels for both the matchup chart and the algorithm results is suitable.
+	min_width = 400
+	min_height = 300
+	# The minimum width is calculated the maximum value of each column. The controls tab is irrelevant as it won't be bigger
+	# than either of the two other selections.
+	fin_width = max(frm_selections.winfo_reqwidth(), frm_algs.winfo_reqwidth()) + min_width
+	# The minimum height is calculated with the maximum value of each row.
+	fin_height = frm_controls.winfo_reqheight() + max(frm_selections.winfo_reqheight(), min_height) + max(frm_algs.winfo_reqheight(), min_height)
+	root.columnconfigure(0, minsize=max(frm_selections.winfo_reqwidth(), frm_algs.winfo_reqwidth()))
+	root.rowconfigure(1, minsize=max(frm_selections.winfo_reqheight(), min_height))
+	root.rowconfigure(2, minsize=max(frm_algs.winfo_reqheight(), min_height))
 	root.minsize(width=fin_width, height=fin_height)
 
-def update():
+def configure_chart_size():
+	# Update the scrollregion of the canvas to be the size of the newly updated chart. The scrollregion needs to be updated everytime the
+	# chart is changed.
+	can_chart.config(scrollregion=(0,0,frm_chart.winfo_reqwidth(), frm_chart.winfo_reqheight()))
+
+def configure_results_size():
+	# Update the scrollregion of the canvas to be the size of the newly updated chart. The scrollregion needs to be updated everytime an update
+	# happens. This requires calculating the requested size of the child frames. The parent frame (frm_results),
+	# will only give the number of frames that are children of it. There is no command that will give the raw row length and column height.
+	# The for loop gets the width and height from the children so that any category of the display size (font, spacing) can be changed and the 
+	# function would still get the correct number.
+	wid = 0
+	hei = 0
+	for i in frm_results.grid_slaves():
+		wid += i.winfo_reqwidth()
+		hei = max(i.winfo_reqheight(), hei)
+	can_results.config(scrollregion=(0,0,wid,hei))
+
+def construct():
 	update_button['bg'] = "SystemButtonFace"
 	update_chart()
 	update_table()
-	configure_min_size()
+	# The after call has to be used to position the configure_chart_size call to happen after the screen has been updated.
+	# Using an event generation did not successfully update the canvas size based on the frame size.
+	# Add if statement that this only changes if the chart is actually updated.
+	root.after(1, func=configure_chart_size)
+	root.after(100, func=configure_results_size)
 
 def check_for_update():
 	if v.get() != cur_selection.get():
 		update_button['bg'] = "#FFFD58"
 
-
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
     option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, command=check_for_update, font=("TkDefaultFont", 12)))
-    option_list[-1].grid()
+    option_list[-1].grid(sticky=tk.EW)
 other_list = []
 for num, value in enumerate(alg_list):
 	ck_var = tk.IntVar()
 	other_list.append([tk.Checkbutton(frm_algs, text=value['name'], variable=ck_var, font=("TkDefaultFont", 12)), ck_var])
-	other_list[-1][0].grid()
-update_button = tk.Button(frm_controls, text="Update", command=update)
+	other_list[-1][0].grid(sticky=tk.EW)
+update_button = tk.Button(frm_controls, text="Update", command=construct)
 update_button.grid(row=0, column=0)
 quit_button = tk.Button(frm_controls, text='Quit', command=root.quit)
 quit_button.grid(row=0, column=1)
-update()
+construct()
+# Call to configure the minimum size after the mainloop has started so that the width/height of the frames can be calculated correctly.
+# This must be done with an .after call. An event generation occurs too early to get the proper width/height.
+root.after(1, configure_min_size)
 root.mainloop()
