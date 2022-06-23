@@ -165,6 +165,26 @@ def check_for_update():
 	if v.get() != cur_selection.get():
 		update_button['bg'] = "#FFFD58"
 
+def on_vertical_mousewheel(widget, event):
+	# This checks if the total yview is 100%. If it is, don't scroll anymore.
+	if widget.yview() == (0.0, 1.0):
+		return
+	widget.yview_scroll(int(-1*(event.delta/120)), "units")
+
+def on_horizontal_mousewheel(widget, event):
+	# This checks if the total xview is 100%. If it is, don't scroll anymore.
+	if widget.xview() == (0.0, 1.0):
+		return
+	widget.xview_scroll(int(-1*(event.delta/120)), "units")
+
+def bound_to_mousewheel(event, widget):
+	widget.bind_all("<MouseWheel>", lambda event, widget=widget : on_vertical_mousewheel(widget, event))
+	widget.bind_all("<Shift-MouseWheel>", lambda event, widget=widget : on_horizontal_mousewheel(widget, event))
+
+def unbound_to_mousewheel(event, widget):
+	widget.unbind_all("MouseWheel>")
+	widget.unbind_all("<Shift-MouseWheel>")
+
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
     option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, command=check_for_update, font=("TkDefaultFont", 12)))
@@ -182,4 +202,9 @@ construct()
 # Call to configure the minimum size after the mainloop has started so that the width/height of the frames can be calculated correctly.
 # This must be done with an .after call. An event generation occurs too early to get the proper width/height.
 root.after(1, configure_min_size)
+# Only bind the mousewheel when the mouse is within the area of widget.
+can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(event, widget))
+can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
+can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
+can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
 root.mainloop()
