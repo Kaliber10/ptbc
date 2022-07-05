@@ -37,7 +37,7 @@ def validate_input (input):
         # It could be nice enough to find the duplicates for you.
         t_name_set = set(v_types)
         if len(t_name_set) != len(v_types):
-            err_string = "Duplicate Types Given in List.\n"
+            err_string = "Duplicate Types Given in List:\n"
             dup_set = set()
             dup_dict = {}
             for index, value in enumerate(v_types):

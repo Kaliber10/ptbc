@@ -13,8 +13,9 @@ Test Plan
 	g. 'resistances', 'weaknesses', 'immunities' has a duplicate type respectively. (Internal_Dup)
 	h. 'resistances', 'weaknesses', 'immunities' has a duplicate type between them. (External_Dup)
 	i. Duplicate type in 'matchups' entry. (Duplicate_Type)
-	j. Ensure the proper error is displayed.
-	k. Ensure that they aren't listed as valid.	
+	j. There are more than 40 types. (Excess_Types)
+	k. Ensure the proper error is displayed.
+	l. Ensure that they aren't listed as valid.	
 3. Having no algorithm files.
 	a. Have no py files in /algorithms
 	b. Run Code
@@ -46,3 +47,5 @@ Test Plan
 	h. Ensure nothing else is in the dictionaries. (extra_data)
 8. Error in Imports
 	a. Have an algorithm that throws an error when trying to import. (import_exception)
+9. Generate Tables
+    a. Give a simple results to be printed, and ensure the numbers printed are correct and formatted correctly.
