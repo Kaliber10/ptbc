@@ -3,15 +3,12 @@ import json
 import sys
 sys.path.append("../algorithms")
 sys.path.append("../")
-import type_matchup
 import matchup_generator
 import io
 
 import alg_a
 import alg_b
 import alg_e
-
-print("Errors above are on import")
 
 # Test 1a
 print("Testing 1")
@@ -56,7 +53,7 @@ f_test = open("types_test/Type_Matchup-Not_List.json", "r")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False
 assert errs[0] == "The input is not a list."
@@ -70,7 +67,7 @@ f_test = open("types_test/Type_Matchup-Missing_Entries.json", "r")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False, "Failure on Missing_Entries"
 assert errs[0] == "Missing entry 'weaknesses' in type Fire."
@@ -86,7 +83,7 @@ f_test = open("types_test/Type_Matchup-Entry_Case.json")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False, "Failure on Entry_Case"
 assert errs[0] == "Wrong casing for 'weaknesses' in type Fire."
@@ -102,7 +99,7 @@ f_test = open("types_test/Type_Matchup-Invalid_Type.json")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False, "Failure on Invalid_Type"
 assert errs[0] == "Flying in weakness of Grass does not exist in the list of types."
@@ -118,7 +115,7 @@ f_test = open("types_test/Type_Matchup-Internal_Dup.json")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False, "Failure on Internal_Dup"
 assert errs[0] == "Duplicate Entry Water in Weaknesses in entry Fire."
@@ -134,7 +131,7 @@ f_test = open("types_test/Type_Matchup-External_Dup.json")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False
 assert errs[0] == "Duplicate Entry Fire in Resistances and Immunities in entry Fire."
@@ -150,10 +147,24 @@ f_test = open("types_test/Type_Matchup-Duplicate_Type.json")
 
 data_in = json.load(f_test)['matchups']
 
-valid, errs = type_matchup.validate_input(data_in)
+valid, errs = matchup_generator.validate_input(data_in)
 
 assert valid == False
-assert errs[0] == "Duplicate Types Given in List\nFire,fIrE"
+assert errs[0] == "Duplicate Types Given in List:\nFire,fIrE"
+
+f_test.close()
+print("Success!")
+
+# Test 2j
+print("Testing Excess_Types")
+f_test = open("types_test/Type_Matchup-Excess_Types.json")
+
+data_in = json.load(f_test)['matchups']
+
+valid, errs = matchup_generator.validate_input(data_in)
+
+assert valid == False, valid
+assert errs[0] == "More than 40 types is not allowed.\n", errs[0]
 
 f_test.close()
 print("Success!")
@@ -276,7 +287,7 @@ test_matchup = [
 	"immunities"  : []
 }
 ]
-type_test = type_matchup.generate_data(test_matchup)
+type_test = matchup_generator.generate_data(test_matchup)
 results, error = matchup_generator.validate_table(type_test, None)
 
 assert results == False, results
@@ -354,4 +365,21 @@ assert results == [], results
 assert err_lines[0] == "The plugin alg_b.algorithm-import_exception had an exception when importing.\n", err_lines[0]
 assert err_lines[1] == "  An error was made\n", err_lines[1]
 print("Success")
-# Test generate_table. Print needs to go to a file so that it can be verified.
+
+print("Testing 9")
+type_test = matchup_generator.generate_data(test_matchup)
+results_test = [{"Fire" : 3.0, "Grass" : 3.0, "Normal" : 0.0, "Water" : 3.0},
+                {"Fire" : 1.5, "Grass" : 1.5, "Normal" : 0.0, "Water" : 1.5}]
+save_out = sys.stdout
+sys.stdout = io.StringIO()
+matchup_generator.generate_table(type_test, results_test)
+t_out = sys.stdout
+sys.stdout = save_out
+t_out.seek(0)
+out_lines = t_out.readlines()
+assert out_lines[0] == "      |  DEF |  OFF |\n", out_lines[0]
+assert out_lines[1] == "Fire  | 3.0  | 1.5  |\n", out_lines[1]
+assert out_lines[2] == "Grass | 3.0  | 1.5  |\n", out_lines[2]
+assert out_lines[3] == "Normal| 0.0  | 0.0  |\n", out_lines[3]
+assert out_lines[4] == "Water | 3.0  | 1.5  |\n", out_lines[4]
+print("Success")
