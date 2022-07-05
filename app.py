@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import ttk
 
 import algorithms
-import algorithms.type_matchup as type_matchup
 import matchup_generator
 
 root = tk.Tk()
@@ -87,8 +86,8 @@ v = tk.IntVar(frm_selections, 0)
 cur_selection = tk.IntVar(frm_selections, 0)
 def update_chart():
 	idata = matchup_list[v.get()]['matchup']
-	type_data = type_matchup.generate_data(idata)
-	fill_chart(type_matchup.generate_matchups(type_data['data']))
+	type_data = matchup_generator.generate_data(idata)
+	fill_chart(matchup_generator.generate_matchups(type_data['data']))
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
 	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
@@ -108,7 +107,7 @@ def update_table():
 	option_list[v.get()]['selectcolor'] = "#88FF7E"
 	cur_selection.set(v.get())
 	idata = matchup_list[v.get()]['matchup']
-	type_data = type_matchup.generate_data(idata)
+	type_data = matchup_generator.generate_data(idata)
 	for i in frm_results.grid_slaves():
 		i.grid_forget()
 	selected_alg = [ind for ind, val in enumerate(other_list) if val[1].get() == 1]
