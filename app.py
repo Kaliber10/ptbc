@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import tkinter as tk
 from tkinter import ttk
+from tkinter import font
+import colorsys
 
 import algorithms
 import matchup_generator
@@ -54,6 +56,9 @@ root.columnconfigure(1, weight=1)
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
+# Fonts
+
+
 matchup_list = matchup_generator.find_valid_matchups('types')
 alg_list = matchup_generator.find_valid_plugins(algorithms)
 
@@ -62,6 +67,8 @@ def fill_chart(matchup_data : dict):
 	# and update what's left. If it needs more it adds more.
 	for i in frm_chart.grid_slaves():
 		i.grid_forget()
+	e_corner = tk.Label(frm_chart, relief=tk.RAISED, bg="#CACACA", width=3)
+	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
 	for i in range(len(matchup_data['header'])):
 		e_top = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
@@ -70,7 +77,7 @@ def fill_chart(matchup_data : dict):
 	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
-			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
 			# TODO Can I use highlight instead of relief for the labels?
 			# Add color to the label. If it is 2x, then use green, if it is 0.5x, then use red.
 			# This makes it more clear to the user what the matchup is.
@@ -79,7 +86,6 @@ def fill_chart(matchup_data : dict):
 			if matchup_data['matchup'][i][j] == 0.5:
 				e['bg'] = "#FF3535"
 			e.grid(row=i+1, column=j+1)
-
 
 option_list = []
 v = tk.IntVar(frm_selections, 0)
@@ -184,6 +190,38 @@ def unbound_to_mousewheel(event, widget):
 	widget.unbind_all("MouseWheel>")
 	widget.unbind_all("<Shift-MouseWheel>")
 
+def foo():
+	frm_chart.configure(bg="#000000")
+	#frm_chart.columnconfigure(2, pad=4)
+	for i in frm_chart.grid_slaves(column=2):
+		hex_color = i['bg'][1:]
+		#print(i['bg'])
+		# Red Green Blue
+		# Default is 240 240 240
+		hex_list = [hex_color[:2]] + [hex_color[2:4]] + [hex_color[4:]]
+		#print(hex_list)
+		#for color in hex_list:
+		#	print(int(color,16) / 255, end=" ")
+		hls_value = colorsys.rgb_to_hls(int(hex_list[0], 16) / 255, int(hex_list[1], 16) / 255, int(hex_list[2], 16) / 255)
+		hls_value = list(hls_value)
+		print(hls_value)
+		hls_value[1] = min(1, hls_value[1] + 0.1)
+		print(hls_value)
+		hex_value = colorsys.hls_to_rgb(hls_value[0], hls_value[1], hls_value[2])
+		hex_color = "#" + str(hex(round(hex_value[0] * 255)))[2:] + str(hex(round(hex_value[1] * 255)))[2:] + str(hex(round(hex_value[2] * 255)))[2:]
+		print(hex_color)
+		i.configure(bg=hex_color)
+		i.configure(relief=tk.RIDGE)
+		i.grid_configure(padx=(4,4))
+		i.configure(font="TkDefaultFont 12 bold" )
+		#i.configure(padx=0)
+		#i["highlightthickness"] = 1
+		#i["highlightbackground"] = "#000000"
+		#print(i["highlightthickness"])
+		#i.configure(bd=4) Can't do border cause it makes it unalign
+		continue
+	root.after(1, func=configure_chart_size)
+
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
     option_list.append(tk.Radiobutton(frm_selections, text=value['name'], variable=v, width = nn, value=num, indicator=0, command=check_for_update, font=("TkDefaultFont", 12)))
@@ -206,4 +244,5 @@ can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(ev
 can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
 can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
 can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
+root.after(60, foo)
 root.mainloop()
