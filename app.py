@@ -48,6 +48,38 @@ f_contain_results.columnconfigure(0, weight=1)
 f_contain_results.rowconfigure(0, weight=1)
 can_results.create_window(0,0, window=frm_results, anchor=tk.NW)
 
+f_contain_offense = tk.Frame(root)
+f_contain_offense.grid(row=1, column=2, sticky=tk.NSEW)
+scl_offense_v = ttk.Scrollbar(f_contain_offense, orient=tk.VERTICAL)
+scl_offense_h = ttk.Scrollbar(f_contain_offense, orient=tk.HORIZONTAL)
+can_offense = tk.Canvas(f_contain_offense, highlightthickness=0, yscrollcommand=scl_offense_v.set, xscrollcommand=scl_offense_h.set)
+can_offense.grid(row=0, column=0, sticky=tk.NSEW)
+scl_offense_v['command'] = can_offense.yview
+scl_offense_h['command'] = can_offense.xview
+scl_offense_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_offense_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_offense = tk.Frame(can_offense)
+frm_offense.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_offense.columnconfigure(0, weight=1)
+f_contain_offense.rowconfigure(0, weight=1)
+can_offense.create_window(0,0, window=frm_offense, anchor=tk.NW)
+
+f_contain_defense = tk.Frame(root)
+f_contain_defense.grid(row=2, column=2, sticky=tk.NSEW)
+scl_defense_v = ttk.Scrollbar(f_contain_defense, orient=tk.VERTICAL)
+scl_defense_h = ttk.Scrollbar(f_contain_defense, orient=tk.HORIZONTAL)
+can_defense = tk.Canvas(f_contain_defense, highlightthickness=0, yscrollcommand=scl_defense_v.set, xscrollcommand=scl_defense_h.set)
+can_defense.grid(row=0, column=0, sticky=tk.NSEW)
+scl_defense_v['command'] = can_defense.yview
+scl_defense_h['command'] = can_defense.xview
+scl_defense_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_defense_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_defense = tk.Frame(can_defense)
+frm_defense.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_defense.columnconfigure(0, weight=1)
+f_contain_defense.rowconfigure(0, weight=1)
+can_defense.create_window(0,0, window=frm_defense, anchor=tk.NW)
+
 frm_controls = tk.Frame(root)
 frm_controls.grid(row=0, columnspan=2)
 
@@ -191,6 +223,9 @@ def unbound_to_mousewheel(event, widget):
 	widget.unbind_all("<Shift-MouseWheel>")
 
 def foo():
+	"""Highlight a column.
+	Update a column to show it as highlighted.
+	"""
 	frm_chart.configure(bg="#000000")
 	#frm_chart.columnconfigure(2, pad=4)
 	for i in frm_chart.grid_slaves(column=2):
