@@ -13,6 +13,8 @@ root.title("ptbc")
 frm_selections = tk.Frame(root)
 frm_selections.grid(row=1, column=0)
 
+# will probably have to create a class for this.
+# Input would probably include the class/frame that goes in the canvas
 f_contain_chart = tk.Frame(root)
 f_contain_chart.grid(row=1,column=1, sticky=tk.NSEW)
 scl_chart_v = ttk.Scrollbar(f_contain_chart, orient=tk.VERTICAL)
@@ -38,6 +40,8 @@ scl_results_v = ttk.Scrollbar(f_contain_results, orient=tk.VERTICAL)
 scl_results_h = ttk.Scrollbar(f_contain_results, orient=tk.HORIZONTAL)
 can_results = tk.Canvas(f_contain_results, highlightthickness=0, yscrollcommand=scl_results_v.set, xscrollcommand=scl_results_h.set)
 can_results.grid(row=0, column=0, sticky=tk.NSEW)
+# To make the scrollbar invisible (if the area is enough space to view the frame)
+# do <scrollbar>.grid_remove(). Then when it needs to be returned, do <scrollbar>.grid()
 scl_results_v['command'] = can_results.yview
 scl_results_h['command'] = can_results.xview
 scl_results_v.grid(row=0, column=1, sticky=(tk.NS))
@@ -85,6 +89,7 @@ frm_controls.grid(row=0, columnspan=2)
 
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
+root.columnconfigure(2, weight=1)
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
@@ -98,6 +103,9 @@ def fill_chart(matchup_data : dict):
 	# should I create a system where it doesn't delete everything, instead it will delete everything it doesn't need
 	# and update what's left. If it needs more it adds more.
 	for i in frm_chart.grid_slaves():
+		# this doesn't delete the objects.
+		# maybe I should use del on it.
+		# otherwise they exist until the garbage collector gets it.
 		i.grid_forget()
 	e_corner = tk.Label(frm_chart, relief=tk.RAISED, bg="#CACACA", width=3)
 	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
@@ -126,6 +134,7 @@ def update_chart():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = matchup_generator.generate_data(idata)
 	fill_chart(matchup_generator.generate_matchups(type_data['data']))
+	construct_header(frm_offense, matchup_generator.generate_matchups(type_data['data']))
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
 	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
@@ -222,6 +231,52 @@ def unbound_to_mousewheel(event, widget):
 	widget.unbind_all("MouseWheel>")
 	widget.unbind_all("<Shift-MouseWheel>")
 
+def construct_header(frame : tk.Frame, matchup_data : dict):
+	"""Construct the header for the offense and defense.
+	Use the matchup_data to fill the frame with the list of types.
+	"""
+	# Remove any extra elements to the header.
+	# TODO
+	# Note that the first element of the grid slave
+	#for i in range(len(matchup_data['header']), len(frame.grid_slaves())):
+	#	i.grid_forget()
+	#	#frame.grid_slaves(row=0,column=i).forget()
+	#if len(frame.grid_slaves()) == len(matchup_data['header']):
+	# 	for i in range(1, len(matchup_data['header'])):
+	#		e_top = frame.grid_slaves(row=0, column=i)
+	#		e_top.config(text=matchup_data['header'][i])
+	#else:
+	#	e_corner = tk.Label(frame, relief=tk.RAISED, bg="#CACACA", width=3)
+	#	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
+	# 	for i in range(len(matchup_data['header'])):
+	#		e_top = tk.Label(frame, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+	#		e_top.grid (row=0, column=i+1))
+	for i in frm_offense.grid_slaves():
+		# This doesn't remove objects. They just float there.
+		# Maybe be del i.
+		i.grid_forget()
+	e_corner = tk.Label(frame, relief=tk.RAISED, bg="#CACACA", width=3)
+	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
+	for i in range(len(matchup_data['header'])):
+		e_top = tk.Label(frame, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+		e_top.grid (row=0, column=i+1)
+	selected = [1]
+	tk.Label(frame, text=matchup_data['header'][1], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12)).grid(row=1, column=0)
+	# This gets offense.
+	# This should be in a seperate function.
+	# The function should take the matchup data
+	# There should be a set function, everytime a type is selected
+	# That goes and adds a new row to the grid with the data.
+	# and an equivalent unset functio should exist too.
+	for i in selected:
+		for j in range(len(matchup_data['matchup'][i])):
+			#offense
+			e = tk.Label(frame, text=str(matchup_data['matchup'][i][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+			#defense
+			#e = tk.Label(frame, text=str(matchup_data['matchup'][j][i]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+			e.grid(row=1, column=j+1)
+	
+
 def foo():
 	"""Highlight a column.
 	Update a column to show it as highlighted.
@@ -239,12 +294,12 @@ def foo():
 		#	print(int(color,16) / 255, end=" ")
 		hls_value = colorsys.rgb_to_hls(int(hex_list[0], 16) / 255, int(hex_list[1], 16) / 255, int(hex_list[2], 16) / 255)
 		hls_value = list(hls_value)
-		print(hls_value)
+		#print(hls_value)
 		hls_value[1] = min(1, hls_value[1] + 0.1)
-		print(hls_value)
+		#print(hls_value)
 		hex_value = colorsys.hls_to_rgb(hls_value[0], hls_value[1], hls_value[2])
 		hex_color = "#" + str(hex(round(hex_value[0] * 255)))[2:] + str(hex(round(hex_value[1] * 255)))[2:] + str(hex(round(hex_value[2] * 255)))[2:]
-		print(hex_color)
+		#print(hex_color)
 		i.configure(bg=hex_color)
 		i.configure(relief=tk.RIDGE)
 		i.grid_configure(padx=(4,4))
