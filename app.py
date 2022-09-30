@@ -85,7 +85,7 @@ f_contain_defense.rowconfigure(0, weight=1)
 can_defense.create_window(0,0, window=frm_defense, anchor=tk.NW)
 
 frm_controls = tk.Frame(root)
-frm_controls.grid(row=0, columnspan=2)
+frm_controls.grid(row=0, columnspan=3)
 
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
@@ -114,6 +114,7 @@ def fill_chart(matchup_data : dict):
 		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
 		e_left.grid (row=i+1, column=0)
+		e_top.bind('<Button-1>', on_type_chart_click)
 	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
@@ -211,6 +212,19 @@ def check_for_update():
 	if v.get() != cur_selection.get():
 		update_button['bg'] = "#FFFD58"
 
+def on_type_chart_click(event):
+	# Name should change for offense
+	# equivalent for defense.
+	grid_num = event.widget.grid_info()['column'] - 1
+	if grid_num in selected:
+		selected.remove(grid_num)
+		foo(grid_num + 1, False)
+		add_selection(frm_offense,)
+	else:
+		selected.append(grid_num)
+		foo(grid_num + 1, True)
+	#print(event.widget.grid_info()['column'] - 1)
+
 def on_vertical_mousewheel(widget, event):
 	# This checks if the total yview is 100%. If it is, don't scroll anymore.
 	if widget.yview() == (0.0, 1.0):
@@ -252,9 +266,7 @@ def construct_header(frame : tk.Frame, matchup_data : dict):
 	#		e_top = tk.Label(frame, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 	#		e_top.grid (row=0, column=i+1))
 	for i in frm_offense.grid_slaves():
-		# This doesn't remove objects. They just float there.
-		# Maybe be del i.
-		i.grid_forget()
+		i.destroy()
 	e_corner = tk.Label(frame, relief=tk.RAISED, bg="#CACACA", width=3)
 	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
 	for i in range(len(matchup_data['header'])):
@@ -276,34 +288,83 @@ def construct_header(frame : tk.Frame, matchup_data : dict):
 			#e = tk.Label(frame, text=str(matchup_data['matchup'][j][i]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
 			e.grid(row=1, column=j+1)
 	
-
-def foo():
+def foo(column : int, highlight : bool):
 	"""Highlight a column.
 	Update a column to show it as highlighted.
 	"""
+	# Use the background of the chart as the hightlight.
+	# will move out.
 	frm_chart.configure(bg="#000000")
+	# 0 : header
+	# 1 : normal
+	# 2 : super
+	# 3 : not
+	# 4 : foreground
+	#COLORS = {"selected" : ("#CACACA", "#F0F0F0", "#5EFF5B", "#FF3535", "#ffffff"), "not_selected" : ("#353535", "#ffffff", "#90ff8e", "#ff6868", "#000000")}
+	COLORS = {"selected" : ("#353535", "#d6d6d6", "#2CFF29", "#ff0000", "#ffffff"), "not_selected" : ("#CACACA", "#F0F0F0", "#5EFF5B","#FF3535", "#000000")}
+	# TODO Change the font more when a type is selected.
 	#frm_chart.columnconfigure(2, pad=4)
-	for i in frm_chart.grid_slaves(column=2):
+	for i in frm_chart.grid_slaves(column=column):
 		hex_color = i['bg'][1:]
 		#print(i['bg'])
 		# Red Green Blue
 		# Default is 240 240 240
 		hex_list = [hex_color[:2]] + [hex_color[2:4]] + [hex_color[4:]]
+		if i.grid_info()['row'] == 0:
+			#hex_color = "#"
+			#hex_color += str(hex(255 - int(hex_list[0], 16)))[2:]
+			#hex_color += str(hex(255 - int(hex_list[1], 16)))[2:]
+			#hex_color += str(hex(255 - int(hex_list[2], 16)))[2:]
+			#fg_hex = i['fg'][1:]
+			#fg_hex = "000000"
+			#fg_list = [fg_hex[:2], fg_hex[2:4], fg_hex[4:]]
+			#fg_color = "#"
+			#fg_color += str(hex(255 - int(fg_list[0], 16)))[2:]
+			#fg_color += str(hex(255 - int(fg_list[1], 16)))[2:]
+			#fg_color += str(hex(255 - int(fg_list[2], 16)))[2:]
+			if highlight:
+				i.configure(fg=COLORS['selected'][4], bg=COLORS['selected'][0], relief=tk.RIDGE)
+			else:
+				i.configure(fg=COLORS["not_selected"][4], bg=COLORS["not_selected"][0], relief=tk.RAISED)
+		else:
 		#print(hex_list)
 		#for color in hex_list:
 		#	print(int(color,16) / 255, end=" ")
-		hls_value = colorsys.rgb_to_hls(int(hex_list[0], 16) / 255, int(hex_list[1], 16) / 255, int(hex_list[2], 16) / 255)
-		hls_value = list(hls_value)
+			#hls_value = colorsys.rgb_to_hls(int(hex_list[0], 16) / 255, int(hex_list[1], 16) / 255, int(hex_list[2], 16) / 255)
+			#hls_value = list(hls_value)
 		#print(hls_value)
-		hls_value[1] = min(1, hls_value[1] + 0.1)
+			#hls_value[1] = min(1, hls_value[1] + 0.1)
 		#print(hls_value)
-		hex_value = colorsys.hls_to_rgb(hls_value[0], hls_value[1], hls_value[2])
-		hex_color = "#" + str(hex(round(hex_value[0] * 255)))[2:] + str(hex(round(hex_value[1] * 255)))[2:] + str(hex(round(hex_value[2] * 255)))[2:]
-		#print(hex_color)
-		i.configure(bg=hex_color)
-		i.configure(relief=tk.RIDGE)
-		i.grid_configure(padx=(4,4))
-		i.configure(font="TkDefaultFont 12 bold" )
+			#hex_value = colorsys.hls_to_rgb(hls_value[0], hls_value[1], hls_value[2])
+			#hex_color = "#" + str(hex(round(hex_value[0] * 255)))[2:] + str(hex(round(hex_value[1] * 255)))[2:] + str(hex(round(hex_value[2] * 255)))[2:]
+			if highlight:
+				if i['text'] == "2":
+					i.configure(bg=COLORS['selected'][2])
+				elif i['text'] == "0.5":
+					i.configure(bg=COLORS['selected'][3])
+				else:
+					i.configure(bg=COLORS['selected'][1])
+				i.configure(relief=tk.RIDGE, fg=COLORS["selected"][4])
+			else:
+				if i['text'] == "2":
+					i.configure(bg=COLORS['not_selected'][2])
+				elif i['text'] == "0.5":
+					i.configure(bg=COLORS['not_selected'][3])
+				else:
+					i.configure(bg=COLORS['not_selected'][1])
+				i.configure(relief=tk.GROOVE, fg=COLORS["not_selected"][4])
+		#i.configure(bg=hex_color)
+		#i.configure(relief=tk.RIDGE)
+		# Ignore the pad stuff.
+		# not going forward with that idea.
+		# possibly in the future it will be one frame per label
+		# when the highlight needs to happen the frame (which is padded), will change color. (not a great idea)
+		#if highlight:
+		#	i.grid_configure(padx=(4,4))
+		#else:
+		#	i.grid_configure(padx=(-4,-4))
+		#i.configure(font="TkDefaultFont 12 bold" ) #look into using bold, but need to do it with out changing the size of the chart. Maybe use padding. Or set its width.
+		i.configure(font="TkDefaultFont 12")
 		#i.configure(padx=0)
 		#i["highlightthickness"] = 1
 		#i["highlightbackground"] = "#000000"
