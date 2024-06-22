@@ -217,12 +217,15 @@ def on_type_chart_click(event):
 	# equivalent for defense.
 	grid_num = event.widget.grid_info()['column'] - 1
 	if grid_num in selected:
+		r = selected.index(grid_num) + 1
 		selected.remove(grid_num)
 		foo(grid_num + 1, False)
-		add_selection(frm_offense,)
+		remove_selection(frm_offense, r)
 	else:
 		selected.append(grid_num)
+		r = len(selected)
 		foo(grid_num + 1, True)
+		add_selection(frm_offense,frm_offense.data, grid_num)
 	#print(event.widget.grid_info()['column'] - 1)
 
 def on_vertical_mousewheel(widget, event):
@@ -272,22 +275,45 @@ def construct_header(frame : tk.Frame, matchup_data : dict):
 	for i in range(len(matchup_data['header'])):
 		e_top = tk.Label(frame, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
-	selected = [1]
-	tk.Label(frame, text=matchup_data['header'][1], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12)).grid(row=1, column=0)
-	# This gets offense.
+def add_selection(frame : tk.Frame, matchup_data : dict, sel : int):
+	# There should be a class for this frame, each with add_selection. That will determine which to use.
 	# This should be in a seperate function.
 	# The function should take the matchup data
 	# There should be a set function, everytime a type is selected
 	# That goes and adds a new row to the grid with the data.
 	# and an equivalent unset functio should exist too.
-	for i in selected:
-		for j in range(len(matchup_data['matchup'][i])):
+	# Saved for history.
+	#for i in selected:
+	#	for j in range(len(matchup_data['matchup'][i])):
+	#		#offense
+	#		e = tk.Label(frame, text=str(matchup_data['matchup'][i][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+	#		#defense
+	#		#e = tk.Label(frame, text=str(matchup_data['matchup'][j][i]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+	#		e.grid(row=1, column=j+1)
+	r = len(frame.grid_slaves(column=0))
+	#for i in range(r):
+		#print(frame.grid_slaves(row=i, column=0))
+	#	try:
+	#		print("widget: {} | text: {}".format(frame.grid_slaves(row=i, column=0)[0], frame.grid_slaves(row=i, column=0)[0]['text']))
+	#	except:
+	#		print("length: {}, row {}".format(r, i))
+	#print("selected type: {} | number of rows: {}".format(sel, r))
+	h = tk.Label(frame, text=matchup_data['header'][sel], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+	h.grid(row=r, column=0)
+	#print(h.grid_info())
+	for j in range(len(matchup_data['matchup'][sel])):
 			#offense
-			e = tk.Label(frame, text=str(matchup_data['matchup'][i][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
-			#defense
-			#e = tk.Label(frame, text=str(matchup_data['matchup'][j][i]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
-			e.grid(row=1, column=j+1)
-	
+			e = tk.Label(frame, text=str(matchup_data['matchup'][sel][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+			e.grid(row=r, column=j+1)
+
+def remove_selection(frame : tk.Frame, r : int):
+	l = len(frame.grid_slaves(column=0))
+	for i in frame.grid_slaves(row=r):
+		i.destroy()
+	for i in range(r+1, l):
+		for j in frame.grid_slaves(row=i):
+			j.grid_configure(row=i-1)
+
 def foo(column : int, highlight : bool):
 	"""Highlight a column.
 	Update a column to show it as highlighted.
@@ -395,5 +421,6 @@ can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(ev
 can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
 can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
 can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
-root.after(60, foo)
+#global variable that should be refactored
+selected = []
 root.mainloop()
