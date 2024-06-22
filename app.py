@@ -135,7 +135,9 @@ def update_chart():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = matchup_generator.generate_data(idata)
 	fill_chart(matchup_generator.generate_matchups(type_data['data']))
-	construct_header(frm_offense, matchup_generator.generate_matchups(type_data['data']))
+	frm_offense.data = matchup_generator.generate_matchups(type_data['data'])
+	#print(frm_offense.data)
+	construct_header(frm_offense, frm_offense.data)
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
 	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
