@@ -186,6 +186,10 @@ def generate_matchups(Data : dict):
             print("Error: Potential Duplicate Names")
         else:
             chart["header"].append(type[0:3])
+    # Should the chart be a dict that is indexed by the tuple of strings
+    # that is (offense, defense)? This might make it more clear how it works.
+    # or it could be a combination of both. Like it can be both number and
+    # string. Would need a map for that.
     type_index_map = {type: index for index, type in enumerate(Data.keys())}
     for index, type in enumerate(Data.keys()):
         chart['matchup'].append([1 for i in Data.keys()])

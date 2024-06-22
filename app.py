@@ -13,6 +13,26 @@ root.title("ptbc")
 frm_selections = tk.Frame(root)
 frm_selections.grid(row=1, column=0)
 
+class ScrollFrame(tk.Frame):
+	def __init__(self, content : tk.Frame, master=None, cnf={}, **kw):
+		"""Construct a ScrollFrame with the parent MASTER that contains a.
+		
+		"""
+		self.scl_vertical = ttk.Scrollbar(self, orient=tk.VERTICAL)
+		self.scl_horizontal = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
+		self.can_area = tk.Canvas(self, highlightthickness=0, yscrollcommand=self.scl_vertical.set, xscrollcommand=self.scl_horizontal.set)
+		self.can_area.grid(row=0, column=0, sticky=tk.NSEW)
+		self.scl_vertical['command'] = self.can_area.yview
+		self.scl_horizontal['command'] = self.can_area.xview
+		self.scl_vertical.grid(row=0, column=1, sticky=tk.NS)
+		self.scl_horizontal.grid(row=1, column=0, sticky=tk.EW)
+		self.content = content(self.can_area)
+		self.content.grid(row=0, column=0, sticky=tk.NSEW)
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.can_area.create_window(0,0, window=self.content, anchor=tk.NW)
+		super().__init__(master, cnf, kw)
+
 # will probably have to create a class for this.
 # Input would probably include the class/frame that goes in the canvas
 f_contain_chart = tk.Frame(root)
@@ -186,6 +206,12 @@ def configure_chart_size():
 	# Update the scrollregion of the canvas to be the size of the newly updated chart. The scrollregion needs to be updated everytime the
 	# chart is changed.
 	can_chart.config(scrollregion=(0,0,frm_chart.winfo_reqwidth(), frm_chart.winfo_reqheight()))
+	# Attempt to turn scroll bar invisible if not needed.
+	# does not work.
+	if can_chart.yview() == (0.0, 1.0):
+		scl_chart_v.grid_remove()
+	else:
+		scl_chart_v.grid()
 
 def configure_results_size():
 	# Update the scrollregion of the canvas to be the size of the newly updated chart. The scrollregion needs to be updated everytime an update
@@ -277,6 +303,8 @@ def construct_header(frame : tk.Frame, matchup_data : dict):
 	for i in range(len(matchup_data['header'])):
 		e_top = tk.Label(frame, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
+	#tk.Label(frame, text=matchup_data['header'][1], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12)).grid(row=1, column=0)
+
 def add_selection(frame : tk.Frame, matchup_data : dict, sel : int):
 	# There should be a class for this frame, each with add_selection. That will determine which to use.
 	# This should be in a seperate function.
@@ -355,14 +383,14 @@ def foo(column : int, highlight : bool):
 			else:
 				i.configure(fg=COLORS["not_selected"][4], bg=COLORS["not_selected"][0], relief=tk.RAISED)
 		else:
-		#print(hex_list)
-		#for color in hex_list:
-		#	print(int(color,16) / 255, end=" ")
+			#print(hex_list)
+			#for color in hex_list:
+			#	print(int(color,16) / 255, end=" ")
 			#hls_value = colorsys.rgb_to_hls(int(hex_list[0], 16) / 255, int(hex_list[1], 16) / 255, int(hex_list[2], 16) / 255)
 			#hls_value = list(hls_value)
-		#print(hls_value)
+			#print(hls_value)
 			#hls_value[1] = min(1, hls_value[1] + 0.1)
-		#print(hls_value)
+			#print(hls_value)
 			#hex_value = colorsys.hls_to_rgb(hls_value[0], hls_value[1], hls_value[2])
 			#hex_color = "#" + str(hex(round(hex_value[0] * 255)))[2:] + str(hex(round(hex_value[1] * 255)))[2:] + str(hex(round(hex_value[2] * 255)))[2:]
 			if highlight:
@@ -423,6 +451,32 @@ can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(ev
 can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
 can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
 can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
+l1 = tk.Label(frm_defense, text="AAA")
+l1.grid()
+l2 = tk.Label(frm_defense, text="BBB", bg='white', font=("TkDefaultFont", 12))
+l2.grid()
+l3 = tk.Label(frm_defense, text="CCC", bg='white', fg='black', font=("TkDefaultFont", 12))
+l3.grid()
+l4 = tk.Label(frm_defense, text="AAA", bg='white', fg='green', relief=tk.RAISED, font=("TkDefaultFont", 12))
+l4.grid()
+l5 = tk.Label(frm_defense, text="bbb", bg='white', fg='red', relief=tk.SUNKEN, font=("TkDefaultFont", 12))
+l5.grid()
+l6 = tk.Label(frm_defense, text="CcC", bg='white', fg='blue', relief=tk.FLAT, font=("TkDefaultFont", 12))
+l6.grid()
+l7 = tk.Label(frm_defense, text='Ddd', bg='white', fg='red', relief=tk.SOLID, font=("TkDefaultFont", 12))
+l7.grid()
+l8 = tk.Label(frm_defense, text='Aaa', bg='white', fg='red', relief=tk.GROOVE, font=("TkDefaultFont", 12), borderwidth=4)
+l8.grid()
+f1 = tk.Frame(frm_defense, bg='yellow')
+f1.grid()
+l9 = tk.Label(f1, text='AAA', bg='white', fg='black', relief=tk.FLAT, font=("TkDefaultFont", 12))
+l9.grid(padx=(4,4))
+f2 = tk.Frame(frm_defense, bg='yellow')
+f2.grid()
+l10 = tk.Label(f2, text='AAA', bg='white', fg='black', relief=tk.FLAT, font=("TkDefaultFont", 12))
+l10.grid()
+f3 = tk.Frame()
 #global variable that should be refactored
 selected = []
+#root.after(60, foo) # was for debuggging
 root.mainloop()
