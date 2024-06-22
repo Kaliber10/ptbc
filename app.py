@@ -6,7 +6,7 @@ import algorithms
 import matchup_generator
 
 root = tk.Tk()
-root.title("ptbc") 
+root.title("ptbc")
 
 frm_selections = tk.Frame(root)
 frm_selections.grid(row=1, column=0)
@@ -62,15 +62,21 @@ def fill_chart(matchup_data : dict):
 	# and update what's left. If it needs more it adds more.
 	for i in frm_chart.grid_slaves():
 		i.grid_forget()
+
+	# Add a corner piece to the type chart for aesthetic.
+	e_corner = tk.Label(frm_chart, relief=tk.RAISED, bg="#CACACA", width=3)
+	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
+
 	for i in range(len(matchup_data['header'])):
 		e_top = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
 		e_left.grid (row=i+1, column=0)
+		e_top.bind('<Button-1>', on_type_chart_click)
 	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
-			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+			e = tk.Label(frm_chart, text=str(matchup_data['matchup'][i][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
 			# TODO Can I use highlight instead of relief for the labels?
 			# Add color to the label. If it is 2x, then use green, if it is 0.5x, then use red.
 			# This makes it more clear to the user what the matchup is.
@@ -79,7 +85,6 @@ def fill_chart(matchup_data : dict):
 			if matchup_data['matchup'][i][j] == 0.5:
 				e['bg'] = "#FF3535"
 			e.grid(row=i+1, column=j+1)
-
 
 option_list = []
 v = tk.IntVar(frm_selections, 0)
@@ -141,7 +146,7 @@ def configure_results_size():
 	# Update the scrollregion of the canvas to be the size of the newly updated chart. The scrollregion needs to be updated everytime an update
 	# happens. This requires calculating the requested size of the child frames. The parent frame (frm_results),
 	# will only give the number of frames that are children of it. There is no command that will give the raw row length and column height.
-	# The for loop gets the width and height from the children so that any category of the display size (font, spacing) can be changed and the 
+	# The for loop gets the width and height from the children so that any category of the display size (font, spacing) can be changed and the
 	# function would still get the correct number.
 	wid = 0
 	hei = 0
@@ -164,6 +169,16 @@ def check_for_update():
 	if v.get() != cur_selection.get():
 		update_button['bg'] = "#FFFD58"
 
+def on_type_chart_click(event):
+	# This will work for the defensive stats of a type.
+	grid_num = event.widget.grid_info()['column'] - 1
+	if grid_num in selected:
+		selected.remove(grid_num)
+		highlight_column(grid_num + 1, False)
+	else:
+		selected.append(grid_num)
+		highlight_column(grid_num + 1, True)
+
 def on_vertical_mousewheel(widget, event):
 	# This checks if the total yview is 100%. If it is, don't scroll anymore.
 	if widget.yview() == (0.0, 1.0):
@@ -183,6 +198,43 @@ def bound_to_mousewheel(event, widget):
 def unbound_to_mousewheel(event, widget):
 	widget.unbind_all("MouseWheel>")
 	widget.unbind_all("<Shift-MouseWheel>")
+
+def highlight_column(column : int, highlight : bool):
+	"""Highlight a column.
+	Update the elements of a column to be highlighted or not.
+	"""
+
+	# 0 : header
+	# 1 : normal
+	# 2 : super
+	# 3 : not
+	# 4 : foreground
+	COLORS = {"selected" : ("#353535", "#d6d6d6", "#2CFF29", "#ff0000", "#ffffff"), "not_selected" : ("#CACACA", "#F0F0F0", "#5EFF5B","#FF3535", "#000000")}
+	for i in frm_chart.grid_slaves(column=column):
+		if i.grid_info()['row'] == 0:
+			if highlight:
+				i.configure(fg=COLORS['selected'][4], bg=COLORS['selected'][0], relief=tk.RIDGE)
+			else:
+				i.configure(fg=COLORS["not_selected"][4], bg=COLORS["not_selected"][0], relief=tk.RAISED)
+		else:
+			if highlight:
+				if i['text'] == "2":
+					i.configure(bg=COLORS['selected'][2])
+				elif i['text'] == "0.5":
+					i.configure(bg=COLORS['selected'][3])
+				else:
+					i.configure(bg=COLORS['selected'][1])
+				i.configure(relief=tk.RIDGE, fg=COLORS["selected"][4])
+			else:
+				if i['text'] == "2":
+					i.configure(bg=COLORS['not_selected'][2])
+				elif i['text'] == "0.5":
+					i.configure(bg=COLORS['not_selected'][3])
+				else:
+					i.configure(bg=COLORS['not_selected'][1])
+				i.configure(relief=tk.GROOVE, fg=COLORS["not_selected"][4])
+		i.configure(font="TkDefaultFont 12")
+	root.after(1, func=configure_chart_size)
 
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
@@ -206,4 +258,6 @@ can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(ev
 can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
 can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
 can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
+# Used to identify what type was selected for highlighting.
+selected = []
 root.mainloop()
