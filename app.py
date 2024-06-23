@@ -46,11 +46,44 @@ f_contain_results.columnconfigure(0, weight=1)
 f_contain_results.rowconfigure(0, weight=1)
 can_results.create_window(0,0, window=frm_results, anchor=tk.NW)
 
+f_contain_offense = tk.Frame(root)
+f_contain_offense.grid(row=1, column=2, sticky=tk.NSEW)
+scl_offense_v = ttk.Scrollbar(f_contain_offense, orient=tk.VERTICAL)
+scl_offense_h = ttk.Scrollbar(f_contain_offense, orient=tk.HORIZONTAL)
+can_offense = tk.Canvas(f_contain_offense, highlightthickness=0, yscrollcommand=scl_offense_v.set, xscrollcommand=scl_offense_h.set)
+can_offense.grid(row=0, column=0, sticky=tk.NSEW)
+scl_offense_v['command'] = can_offense.yview
+scl_offense_h['command'] = can_offense.xview
+scl_offense_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_offense_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_offense = tk.Frame(can_offense)
+frm_offense.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_offense.columnconfigure(0, weight=1)
+f_contain_offense.rowconfigure(0, weight=1)
+can_offense.create_window(0,0, window=frm_offense, anchor=tk.NW)
+
+f_contain_defense = tk.Frame(root)
+f_contain_defense.grid(row=2, column=2, sticky=tk.NSEW)
+scl_defense_v = ttk.Scrollbar(f_contain_defense, orient=tk.VERTICAL)
+scl_defense_h = ttk.Scrollbar(f_contain_defense, orient=tk.HORIZONTAL)
+can_defense = tk.Canvas(f_contain_defense, highlightthickness=0, yscrollcommand=scl_defense_v.set, xscrollcommand=scl_defense_h.set)
+can_defense.grid(row=0, column=0, sticky=tk.NSEW)
+scl_defense_v['command'] = can_defense.yview
+scl_defense_h['command'] = can_defense.xview
+scl_defense_v.grid(row=0, column=1, sticky=(tk.NS))
+scl_defense_h.grid(row=1, column=0, sticky=(tk.EW))
+frm_defense = tk.Frame(can_defense)
+frm_defense.grid(row=0, column=0, sticky=(tk.NSEW))
+f_contain_defense.columnconfigure(0, weight=1)
+f_contain_defense.rowconfigure(0, weight=1)
+can_defense.create_window(0,0, window=frm_defense, anchor=tk.NW)
+
 frm_controls = tk.Frame(root)
-frm_controls.grid(row=0, columnspan=2)
+frm_controls.grid(row=0, columnspan=3)
 
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
+root.columnconfigure(2, weight=1)
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
@@ -93,6 +126,16 @@ def update_chart():
 	idata = matchup_list[v.get()]['matchup']
 	type_data = matchup_generator.generate_data(idata)
 	fill_chart(matchup_generator.generate_matchups(type_data['data']))
+	matchup_data = matchup_generator.generate_matchups(type_data['data'])
+	frm_offense.data = matchup_data
+	# Calculate the defensive data from the offensive data
+	frm_defense.data = {'header': matchup_data['header'], "matchup": []}
+	for i, _ in enumerate(matchup_data["header"]):
+		defense_matchup = []
+		for j in matchup_data['matchup']:
+			defense_matchup.append(j[i])
+		frm_defense.data['matchup'].append(defense_matchup)
+	construct_header(frm_defense, matchup_data["header"])
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
 	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
@@ -173,11 +216,15 @@ def on_type_chart_click(event):
 	# This will work for the defensive stats of a type.
 	grid_num = event.widget.grid_info()['column'] - 1
 	if grid_num in selected:
+		r = selected.index(grid_num) + 1
 		selected.remove(grid_num)
 		highlight_column(grid_num + 1, False)
+		remove_selection(frm_defense, r)
 	else:
 		selected.append(grid_num)
+		r = len(selected)
 		highlight_column(grid_num + 1, True)
+		add_selection(frm_defense, frm_defense.data, grid_num)
 
 def on_vertical_mousewheel(widget, event):
 	# This checks if the total yview is 100%. If it is, don't scroll anymore.
@@ -198,6 +245,43 @@ def bound_to_mousewheel(event, widget):
 def unbound_to_mousewheel(event, widget):
 	widget.unbind_all("MouseWheel>")
 	widget.unbind_all("<Shift-MouseWheel>")
+
+def construct_header(frame : tk.Frame, type_names : list):
+	"""Construct the header for the offense and defense.
+	Use the matchup_data to fill the frame with the list of types.
+	"""
+	for i in frame.grid_slaves():
+		i.destroy()
+	e_corner = tk.Label(frame, relief=tk.RAISED, bg="#CACACA", width=3)
+	e_corner.grid(row=0, column=0, sticky=tk.NSEW)
+	for i in range(len(type_names)):
+		e_top = tk.Label(frame, text=type_names[i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+		e_top.grid (row=0, column=i+1)
+
+def add_selection(frame : tk.Frame, matchup_data : dict, sel : int):
+
+	r = len(frame.grid_slaves(column=0))
+
+	# Create the label that indicates the type.
+	h = tk.Label(frame, text=matchup_data['header'][sel], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
+	h.grid(row=r, column=0)
+
+	for j in range(len(matchup_data['matchup'][sel])):
+		e = tk.Label(frame, text=str(matchup_data['matchup'][sel][j]), bg="#F0F0F0", relief=tk.GROOVE, width=3, font=("TkDefaultFont", 12))
+		e.grid(row=r, column=j+1)
+
+def remove_selection(frame : tk.Frame, r : int):
+
+	l = len(frame.grid_slaves(column=0))
+
+	# Remove the row that had be unselected.
+	for i in frame.grid_slaves(row=r):
+		i.destroy()
+
+	# Shift every row below the unselected row.
+	for i in range(r+1, l):
+		for j in frame.grid_slaves(row=i):
+			j.grid_configure(row=i-1)
 
 def highlight_column(column : int, highlight : bool):
 	"""Highlight a column.
