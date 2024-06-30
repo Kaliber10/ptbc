@@ -105,7 +105,8 @@ def fill_chart(matchup_data : dict):
 		e_left = tk.Label(frm_chart, text=matchup_data['header'][i], relief=tk.RAISED, bg="#CACACA", width=3, font=("TkDefaultFont", 12))
 		e_top.grid (row=0, column=i+1)
 		e_left.grid (row=i+1, column=0)
-		e_top.bind('<Button-1>', on_type_chart_click)
+		e_top.bind('<Button-1>', on_defensive_click)
+		e_left.bind('<Button-1>', on_offensive_click)
 	# The horizontal is the defense. The vertical is the offense.
 	for i in range(len(matchup_data['matchup'])):
 		for j in range(len(matchup_data['matchup'][i])):
@@ -212,19 +213,28 @@ def check_for_update():
 	if v.get() != cur_selection.get():
 		update_button['bg'] = "#FFFD58"
 
-def on_type_chart_click(event):
+def on_defensive_click(event):
 	# This will work for the defensive stats of a type.
 	grid_num = event.widget.grid_info()['column'] - 1
-	if grid_num in selected:
-		r = selected.index(grid_num) + 1
-		selected.remove(grid_num)
+	if grid_num in selected_defense:
+		r = selected_defense.index(grid_num) + 1
+		selected_defense.remove(grid_num)
 		highlight_column(grid_num + 1, False)
 		remove_selection(frm_defense, r)
 	else:
-		selected.append(grid_num)
-		r = len(selected)
+		selected_defense.append(grid_num)
 		highlight_column(grid_num + 1, True)
 		add_selection(frm_defense, frm_defense.data, grid_num)
+
+def on_offensive_click(event):
+	# This will work for the offensive stats of a type.
+	grid_num = event.widget.grid_info()['row'] - 1
+	if grid_num in selected_offense:
+		selected_offense.remove(grid_num)
+		highlight_row(grid_num + 1, False)
+	else:
+		selected_offense.append(grid_num)
+		highlight_row(grid_num + 1, True)
 
 def on_vertical_mousewheel(widget, event):
 	# This checks if the total yview is 100%. If it is, don't scroll anymore.
@@ -285,7 +295,7 @@ def remove_selection(frame : tk.Frame, r : int):
 
 def highlight_column(column : int, highlight : bool):
 	"""Highlight a column.
-	Update the elements of a column to be highlighted or not.
+	Update the elements of a column to be highlighted or not. Will not remove a highlight for a cell whose row is highlighted.
 	"""
 
 	# 0 : header
@@ -310,15 +320,52 @@ def highlight_column(column : int, highlight : bool):
 					i.configure(bg=COLORS['selected'][1])
 				i.configure(relief=tk.RIDGE, fg=COLORS["selected"][4])
 			else:
-				if i['text'] == "2":
-					i.configure(bg=COLORS['not_selected'][2])
-				elif i['text'] == "0.5":
-					i.configure(bg=COLORS['not_selected'][3])
-				else:
-					i.configure(bg=COLORS['not_selected'][1])
-				i.configure(relief=tk.GROOVE, fg=COLORS["not_selected"][4])
+				if i.grid_info()['row'] - 1 not in selected_offense:
+					if i['text'] == "2":
+						i.configure(bg=COLORS['not_selected'][2])
+					elif i['text'] == "0.5":
+						i.configure(bg=COLORS['not_selected'][3])
+					else:
+						i.configure(bg=COLORS['not_selected'][1])
+					i.configure(relief=tk.GROOVE, fg=COLORS["not_selected"][4])
 		i.configure(font="TkDefaultFont 12")
-	root.after(1, func=configure_chart_size)
+
+def highlight_row (row : int, highlight : bool):
+	"""Highlight a row.
+	Update the elements of a row to be highlighted or not. Will not remove a highlight for a cell whose column is highlighted.
+	"""
+
+	# 0 : header
+	# 1 : normal
+	# 2 : super
+	# 3 : not
+	# 4 : foreground
+	COLORS = {"selected" : ("#353535", "#d6d6d6", "#2CFF29", "#ff0000", "#ffffff"), "not_selected" : ("#CACACA", "#F0F0F0", "#5EFF5B","#FF3535", "#000000")}
+	for i in frm_chart.grid_slaves(row=row):
+		if i.grid_info()['column'] == 0:
+			if highlight:
+				i.configure(fg=COLORS['selected'][4], bg=COLORS['selected'][0], relief=tk.RIDGE)
+			else:
+				i.configure(fg=COLORS["not_selected"][4], bg=COLORS["not_selected"][0], relief=tk.RAISED)
+		else:
+			if highlight:
+				if i['text'] == "2":
+					i.configure(bg=COLORS['selected'][2])
+				elif i['text'] == "0.5":
+					i.configure(bg=COLORS['selected'][3])
+				else:
+					i.configure(bg=COLORS['selected'][1])
+				i.configure(relief=tk.RIDGE, fg=COLORS["selected"][4])
+			else:
+				if i.grid_info()['column'] - 1 not in selected_defense:
+					if i['text'] == "2":
+						i.configure(bg=COLORS['not_selected'][2])
+					elif i['text'] == "0.5":
+						i.configure(bg=COLORS['not_selected'][3])
+					else:
+						i.configure(bg=COLORS['not_selected'][1])
+					i.configure(relief=tk.GROOVE, fg=COLORS["not_selected"][4])
+		i.configure(font="TkDefaultFont 12")
 
 nn = len(max([n['name'] for n in matchup_list], key=len))
 for num, value in enumerate(matchup_list):
@@ -342,6 +389,7 @@ can_chart.bind('<Enter>', lambda event, widget=can_chart: bound_to_mousewheel(ev
 can_chart.bind('<Leave>', lambda event, widget=can_chart: unbound_to_mousewheel(event, widget))
 can_results.bind('<Enter>', lambda event, widget=can_results: bound_to_mousewheel(event, widget))
 can_results.bind('<Leave>', lambda event, widget=can_results: unbound_to_mousewheel(event, widget))
-# Used to identify what type was selected for highlighting.
-selected = []
+# Used to identify what type was selected for highlighting, separated based on offense and defense as those are independent.
+selected_defense = []
+selected_offense = []
 root.mainloop()
