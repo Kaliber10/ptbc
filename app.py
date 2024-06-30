@@ -137,6 +137,7 @@ def update_chart():
 			defense_matchup.append(j[i])
 		frm_defense.data['matchup'].append(defense_matchup)
 	construct_header(frm_defense, matchup_data["header"])
+	construct_header(frm_offense, matchup_data['header'])
 
 def create_table(frame : tk.Frame, name : str, alg : list, keys : list, max_len : int):
 	tk.Label(frame, text=name, font=("TkDefaultFont", 12)).grid(row=0, columnspan=3)
@@ -230,11 +231,14 @@ def on_offensive_click(event):
 	# This will work for the offensive stats of a type.
 	grid_num = event.widget.grid_info()['row'] - 1
 	if grid_num in selected_offense:
+		r = selected_offense.index(grid_num) + 1
 		selected_offense.remove(grid_num)
 		highlight_row(grid_num + 1, False)
+		remove_selection(frm_offense, r)
 	else:
 		selected_offense.append(grid_num)
 		highlight_row(grid_num + 1, True)
+		add_selection(frm_offense, frm_offense.data, grid_num)
 
 def on_vertical_mousewheel(widget, event):
 	# This checks if the total yview is 100%. If it is, don't scroll anymore.
