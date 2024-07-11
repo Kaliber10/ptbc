@@ -208,6 +208,8 @@ def construct():
 	# Using an event generation did not successfully update the canvas size based on the frame size.
 	# Add if statement that this only changes if the chart is actually updated.
 	root.after(1, func=configure_chart_size)
+	root.after(1, func=lambda : can_defense.config(scrollregion=(0,0,frm_defense.winfo_reqwidth(), frm_defense.winfo_reqheight())))
+	root.after(1, func=lambda : can_offense.config(scrollregion=(0,0,frm_offense.winfo_reqwidth(), frm_offense.winfo_reqheight())))
 	root.after(100, func=configure_results_size)
 
 def check_for_update():
